@@ -12,8 +12,8 @@ from dash.dependencies import Input, Output
 
 from utils import import_and_format
 
-columns_to_display = ['bidSz','bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
-names_to_display = ['Volume (Bid)', 'Bid','Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
+columns_to_display = ['bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
+names_to_display = ['Volume (Bid)', 'Bid', 'Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 df = import_and_format('./data_book.csv')
 
@@ -26,8 +26,9 @@ app.layout = html.Div([
     dcc.Graph(figure=fig),
     html.Div(
         html.H1(children='Book Reader'),
-        style={'display':'flex', 'margin':0, 'position': 'fixed', 'right': 0, 'top': 0, 'left': 0, 'padding': 0,
-               'font-size': 0, 'background-color': '#f6f6f6', 'border-bottom': '1px solid #cccccc', 'text-align':'center'}
+        style={'display': 'flex', 'margin': 0, 'position': 'fixed', 'right': 0, 'top': 0, 'left': 0,
+               'padding': 0, 'font-size': 0, 'background-color': '#f6f6f6', 'border-bottom': '1px solid #cccccc',
+               'text-align': 'center'}
     ),
     html.Div([
         html.Div(
@@ -38,13 +39,13 @@ app.layout = html.Div([
                 initial_visible_month=dt(2019, 8, 7),
                 date=str(dt(2019, 8, 7))
             ),
-            style={'width':'30%','float': 'left', 'display': 'inline-block'}
+            style={'width': '30%', 'float': 'left', 'display': 'inline-block'}
         ),
         html.Div(
             children=[
                 html.Div([
                     dcc.Checklist(id='all_hour',
-                        options=[{'label': 'All', 'value': 'all_hour'},]),
+                                  options=[{'label': 'All', 'value': 'all_hour'}]),
                     dcc.RangeSlider(
                         id='hour_slider',
                         min=0,
@@ -52,11 +53,11 @@ app.layout = html.Div([
                         step=1,
                         value=[6, 10],
                         marks={i: f'{i}h' for i in range(0, 24, 3)}
-                    ),],
+                    )],
                 ),
                 html.Div([
                     dcc.Checklist(id='all_min',
-                        options=[{'label': 'All', 'value': 'all_min'}, ]),
+                                  options=[{'label': 'All', 'value': 'all_min'}]),
                     dcc.RangeSlider(
                         id='minute_slider',
                         min=0,
@@ -64,11 +65,11 @@ app.layout = html.Div([
                         step=0.5,
                         value=[4, 10],
                         marks={i: f'{i}min' for i in range(0, 60, 10)}
-                    ),],
+                    )],
                 ),
                 html.Div([
                     dcc.Checklist(id='all_second',
-                        options=[{'label': 'All', 'value': 'all_second'}, ]),
+                                  options=[{'label': 'All', 'value': 'all_second'}, ]),
                     dcc.RangeSlider(
                         id='second_slider',
                         min=0,
@@ -79,12 +80,12 @@ app.layout = html.Div([
                     )],
                 )
                 ],
-            style={'width':'60%', # 'float': 'right',
-                   'display':'flex',
-                   'flex-direction':'column'
+            style={'width': '60%',  # 'float': 'right',
+                   'display': 'flex',
+                   'flex-direction': 'column'
                    }
-        ),],
-        style={'justify-content':'space-between','display':'flex', 'margin-top': '100px'}
+        )],
+        style={'justify-content': 'space-between', 'display': 'flex', 'margin-top': '100px'}
     ),
 
     dash_table.DataTable(
@@ -95,8 +96,7 @@ app.layout = html.Div([
                  {"name": ["Ask", "Volume"], "id": 'askSz'},
                  {"name": ["Trade", "Price"], "id": 'tradePx'},
                  {"name": ["Trade", "Volume"], "id": 'tradeSz'}],
-
-            # {"name": i, "id": j} for (i,j) in zip(names_to_display, columns_to_display)],
+# {"name": i, "id": j} for (i,j) in zip(names_to_display, columns_to_display)],
         style_data_conditional=[
             {
                 'if': {'row_index': 'odd'},
@@ -113,9 +113,10 @@ app.layout = html.Div([
     ),
 ])
 
+
 @app.callback(Output('table', 'data'),
-    [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-     Input('second_slider', 'value'), Input('date_picker', 'date')])
+              [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+               Input('second_slider', 'value'), Input('date_picker', 'date')])
 def update_figure(hour_value, minute_value, second_value, date):
     filtered_df = df.copy()
     if date is not None:
@@ -134,17 +135,20 @@ def update_figure(hour_value, minute_value, second_value, date):
     df_to_display = filtered_df[columns_to_display].to_dict('records')
     return df_to_display
 
+
 @app.callback(
     Output('hour_slider', 'value'),
     [Input('all_hour', 'value')])
 def set_hour_values(value):
     return [0, 24] if value else [6, 10]
 
+
 @app.callback(
     Output('minute_slider', 'value'),
     [Input('all_min', 'value')])
 def set_hour_values(value):
     return [0, 60] if value else [4, 10]
+
 
 @app.callback(
     Output('second_slider', 'value'),
