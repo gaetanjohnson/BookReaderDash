@@ -1,20 +1,29 @@
-import dash
+import re
 from datetime import datetime as dt
+
+import plotly.express as px
+import plotly.graph_objects as go
+
+import dash
+import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+
 from utils import generate_table, import_and_format
-import dash_table
-import re
 
 columns_to_display = ['bidSz','bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
 names_to_display = ['Volume (Bid)', 'Bid','Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 df = import_and_format('./data_book.csv')
 
+fig = px.line(df, x="time", y="bidPx", title="Bid")
+fig.update_xaxes(rangeslider_visible=True)
+
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 app.layout = html.Div([
+    dcc.Graph(figure=fig),
     html.Div(
         html.H1(children='Book Reader'),
         style={'display':'flex', 'margin':0, 'position': 'fixed', 'right': 0, 'top': 0, 'left': 0, 'padding': 0,
