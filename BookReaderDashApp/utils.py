@@ -1,5 +1,5 @@
 import pandas as pd
-from dataclasses import BestBookLevel
+from dataclasses import TopBook
 import dash_html_components as html
 
 
@@ -15,20 +15,16 @@ def import_and_format(datafile):
     data['nanosecond'] = data['time'].dt.nanosecond
     return data
 
+def read_entries_file(datafile):
+    lines = []
+    with open(datafile, 'r') as f:
+        for line in f:
+            lines.append(line)
+    return lines
+
+# def parse_and_format(lines):
+
 def save_to_database(datafile):
     data = import_and_format(datafile).to_dict('records')
     for entry in data:
-        new_entry = BestBookLevel(**entry)
-
-
-def generate_table(dataframe, max_rows=10):
-    return html.Table([
-        html.Thead(
-            html.Tr([html.Th(col) for col in dataframe.columns])
-        ),
-        html.Tbody([
-            html.Tr([
-                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-            ]) for i in range(min(len(dataframe), max_rows))
-        ])
-    ])
+        new_entry = TopBook(**entry)
