@@ -1,4 +1,4 @@
-class BestBookLevel:
+class BookLine:
 
     def __init__(self, nanosEpoch, time, msuk, source,
                  cbidPx, cbidSz, caskPx, caskSz,
@@ -25,3 +25,17 @@ class BestBookLevel:
 
         self.seqNum = seqNum
         self.msgIdx = msgIdx
+
+class TopBook(BookLine):
+
+    def __init__(self, nanosEpoch, time, msuk, source,
+                 cbidPx, cbidSz, caskPx, caskSz,
+                 bidPx, bidSz, askPx, askSz,
+                 tradePx, tradeSz, seqNum, msgIdx):
+
+        super().__init__(nanosEpoch, time, msuk, source,
+                 cbidPx, cbidSz, caskPx, caskSz,
+                 bidPx, bidSz, askPx, askSz,
+                 tradePx, tradeSz, seqNum, msgIdx)
+        # self.
+
