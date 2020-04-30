@@ -36,7 +36,7 @@ app.layout = html.Div([
                 min_date_allowed=dt(2010, 8, 5),
                 max_date_allowed=dt.today(),
                 initial_visible_month=dt.today(),
-                date=str(dt.today())
+                date=str(dt(2019, 8, 7)) # the day for which we have test data
             ),
             style={'width':'30%','float': 'left', 'display': 'inline-block'}
         ),
