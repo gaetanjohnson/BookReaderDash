@@ -10,7 +10,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from utils import generate_table, import_and_format
+from utils import import_and_format
 
 columns_to_display = ['bidSz','bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
 names_to_display = ['Volume (Bid)', 'Bid','Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
@@ -36,7 +36,7 @@ app.layout = html.Div([
                 min_date_allowed=dt(2010, 8, 5),
                 max_date_allowed=dt.today(),
                 initial_visible_month=dt(2019, 8, 7),
-                date=str(dt(2019, 8, 7)) # the day for which we have test data
+                date=str(dt(2019, 8, 7))
             ),
             style={'width':'30%','float': 'left', 'display': 'inline-block'}
         ),
