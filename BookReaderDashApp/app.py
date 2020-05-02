@@ -15,9 +15,11 @@ from utils import import_and_format
 columns_to_display = ['bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
 names_to_display = ['Volume (Bid)', 'Bid', 'Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-df = import_and_format('./data_book.csv')
+df = import_and_format('./data_book_big.csv')
 
-fig = px.line(df, x="time", y="bidPx", title="Bid")
+df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
+
+fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
 fig.update_xaxes(rangeslider_visible=True)
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
