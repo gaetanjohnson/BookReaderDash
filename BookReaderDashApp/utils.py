@@ -1,22 +1,24 @@
 import pandas as pd
-from dataclasses import TopBook
+# from dataclasses import TopBook
 import dash_html_components as html
 import random
 import numpy as np
 import csv
+import dash_core_components as dcc
 
 
 
 def import_and_format(datafile):
     data = pd.read_csv(datafile)
     data.drop(columns=['channelId'], inplace=True)
-    data['time'] = pd.to_datetime(data['nanosEpoch'])
-    data['date'] = data['time'].dt.date
-    data['hour'] = data['time'].dt.hour
-    data['minute'] = data['time'].dt.minute
-    data['second'] = data['time'].dt.second
-    data['microsecond'] = data['time'].dt.microsecond
-    data['nanosecond'] = data['time'].dt.nanosecond
+    data['datetime'] = pd.to_datetime(data['nanosEpoch'])
+    data['date'] = data['datetime'].dt.date
+    data['hour'] = data['datetime'].dt.hour
+    data['minute'] = data['datetime'].dt.minute
+    data['second'] = data['datetime'].dt.second
+    data['microsecond'] = data['datetime'].dt.microsecond
+    # data['nanosecond'] = data['datetime'].dt.nanosecond
+    data['time'] = data['datetime'].dt.time
     return data
 
 def read_entries_file(datafile):
@@ -63,5 +65,20 @@ def save_data(data):
         for line in data:
             writer.writerow(line)
 
+def generate_slider(id_cl, id_rs, min, max, step, value, marks_delta, symbol):
+    slider = html.Div([
+        dcc.Checklist(id=id_cl,
+                      options=[{'label': 'All', 'value': id_cl}]),
+        dcc.RangeSlider(
+            id=id_rs,
+            min=min,
+            max=max,
+            step=step,
+            value=value,
+            marks={i: f'{i}{symbol}' for i in range(min, max, marks_delta)},
+            tooltip={'always_visible': False}
+        )],
+    )
+    return slider
 # data = create_more_date(1000)
 # save_data(data)
