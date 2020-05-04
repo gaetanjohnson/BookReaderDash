@@ -136,3 +136,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Vim sessions
+Session.vim
+
+# intelliJ
+.idea/
