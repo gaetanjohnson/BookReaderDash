@@ -16,19 +16,20 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 df = import_and_format('./data_book_big.csv')
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
+msuks = df['msuk'].unique()
 fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
 fig.update_xaxes(rangeslider_visible=True)
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = generate_app_layout(fig)
+app.layout = generate_app_layout(fig, msuks)
 
 
 @app.callback(Output('table', 'data'),
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
-               Input('date_picker', 'date')])
-def update_figure(hour_value, minute_value, second_value, micros_value, date):
+               Input('date_picker', 'date'), Input('msuk_selector', 'value')])
+def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk):
     filtered_df = df.copy()
     if date is not None:
         date = dt.strptime(re.split('T| ', date)[0], '%Y-%m-%d')
@@ -45,10 +46,12 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date):
         filtered_df = filtered_df[(filtered_df.second <= max_second) & (filtered_df.second >= min_second)]
     if micros_value is not None:
         min_micros, max_micros = micros_value
-        print(min_micros, max_micros)
         filtered_df = filtered_df[(filtered_df.microsecond <= max_micros) & (filtered_df.microsecond >= min_micros)]
+    if msuk is not None:
+        filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     df_to_display = filtered_df[columns_to_display].to_dict('records')
     return df_to_display
+
 
 @app.callback(
     Output('output_timeframe', 'children'),

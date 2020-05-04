@@ -4,7 +4,7 @@ import dash_table
 from utils import generate_slider
 from datetime import datetime as dt
 
-def generate_app_layout(fig):
+def generate_app_layout(fig, msuks):
     app_layout = html.Div([
         dcc.Graph(figure=fig),
         html.Div(
@@ -14,7 +14,13 @@ def generate_app_layout(fig):
                    'text-align': 'center'}
         ),
         html.Div([
-            html.Div(
+            html.Div([
+                dcc.Dropdown(
+                    id='msuk_selector',
+                    options=[{'label': msuk, 'value': msuk} for msuk in msuks],
+                    value=79889147
+                ),
+
                 dcc.DatePickerSingle(
                     id='date_picker',
                     min_date_allowed=dt(2010, 8, 5),
@@ -22,6 +28,7 @@ def generate_app_layout(fig):
                     initial_visible_month=dt(2019, 8, 7),
                     date=str(dt(2019, 8, 7))
                 ),
+                ],
                 style={'width': '30%', 'float': 'left', 'display': 'inline-block'}
             ),
             html.Div(
