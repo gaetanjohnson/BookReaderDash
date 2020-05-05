@@ -1,6 +1,5 @@
 import re
 from datetime import datetime as dt
-
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -10,17 +9,23 @@ from dash.dependencies import Input, Output
 from app_layout import generate_app_layout
 from utils import import_and_format, generate_slider
 
+# TODO: Handle Data (with SQL database ?)
+# TODO: Handle the 2nd form of data
+# TODO: Change layout style
+# TODO: Choose what and how to display
+
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
 # names_to_display = ['Time', 'Volume (Bid)', 'Bid', 'Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 df = import_and_format('./data_book_big.csv')
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
 msuks = df['msuk'].unique()
 fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
-fig.update_xaxes(rangeslider_visible=True)
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+fig.update_xaxes(rangeslider_visible=True)
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 
 app.layout = generate_app_layout(fig, msuks)
 
@@ -64,27 +69,27 @@ def generate_output_timeframe(hour_value, minute_value, second_value, micros_val
 
 @app.callback(
     Output('hour_slider', 'value'),
-    [Input('all_hour', 'value')])
+    [Input('all_hour', 'on')])
 def set_hour_values(value):
     return [0, 24] if value else [6, 10]
 
 
 @app.callback(
     Output('minute_slider', 'value'),
-    [Input('all_min', 'value')])
+    [Input('all_min', 'on')])
 def set_hour_values(value):
     return [0, 60] if value else [4, 10]
 
 
 @app.callback(
     Output('second_slider', 'value'),
-    [Input('all_second', 'value')])
+    [Input('all_second', 'on')])
 def set_hour_values(value):
     return [0, 60] if value else [5, 30]
 
 @app.callback(
     Output('micros_slider', 'value'),
-    [Input('all_micros', 'value')])
+    [Input('all_micros', 'on')])
 def set_micros_values(value):
     return [0, 1000000] if value else [597045, 650000]
 
