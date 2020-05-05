@@ -21,7 +21,6 @@ class DataReader(abc.ABC):
         Commit the data to disk assuming it follows the norm
         """
         DataReader._validate(df)
-
         pd.to_pickle(df, path)
 
     @staticmethod
@@ -31,7 +30,6 @@ class DataReader(abc.ABC):
         """
         df = pd.read_pickle(path)
         DataReader._validate(df)
-
         return pd.read_csv(path)
 
     @staticmethod

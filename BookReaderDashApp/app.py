@@ -22,7 +22,7 @@ columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'trade
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-df = BookLineReader.load("data_book_big.csv")
+df = BookLineReader.load("data/data_book_big.csv")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
 msuks = df['msuk'].unique()
@@ -44,7 +44,7 @@ app.layout = generate_app_layout(fig, msuks)
 def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk):
     filtered_df = df.copy()
     if date is not None:
-        date = dt.strptime(re.split('T| ', date)[0], '%Y-%m-%d')
+        date = dt.strptime(re.split(r"T| ", date)[0], '%Y-%m-%d')
         date = dt.date(date)
         filtered_df = filtered_df[(filtered_df.date == date)]
     if hour_value is not None:
