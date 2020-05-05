@@ -1,13 +1,16 @@
 import re
 from datetime import datetime as dt
-import plotly.express as px
-import plotly.graph_objects as go
 
 import dash
 from dash.dependencies import Input, Output
 
+import plotly.express as px
+
 from app_layout import generate_app_layout
-from utils import import_and_format, generate_slider
+
+from models import BookLineReader
+
+
 
 # TODO: Handle Data (with SQL database ?)
 # TODO: Handle the 2nd form of data
@@ -19,7 +22,8 @@ columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'trade
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-df = import_and_format('./data_book_big.csv')
+df = BookLineReader.load("data_book_big.csv")
+
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
 msuks = df['msuk'].unique()
 
