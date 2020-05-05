@@ -5,6 +5,7 @@ import random
 import numpy as np
 import csv
 import dash_core_components as dcc
+import dash_daq as daq
 
 
 
@@ -66,18 +67,29 @@ def save_data(data):
             writer.writerow(line)
 
 def generate_slider(id_cl, id_rs, min, max, step, value, marks_delta, symbol):
+    marks = {i: {'label': f'{int(i/100000)}e5{symbol}', 'style': {'font-size': '8px'}}
+             for i in range(min, max+marks_delta, marks_delta)} if symbol=='ms' \
+        else {i: f'{i}{symbol}' for i in range(min, max+marks_delta, marks_delta)}
     slider = html.Div([
-        dcc.Checklist(id=id_cl,
-                      options=[{'label': 'All', 'value': id_cl}]),
-        dcc.RangeSlider(
-            id=id_rs,
-            min=min,
-            max=max,
-            step=step,
-            value=value,
-            marks={i: f'{i}{symbol}' for i in range(min, max, marks_delta)},
-            tooltip={'always_visible': False}
-        )],
+            daq.BooleanSwitch(
+                id=id_cl,
+                on=False,
+                label={'label': 'All', 'style': {'fontSize': '10%'}},
+                className='sliderbutton',
+            ),
+
+            dcc.RangeSlider(
+                id=id_rs,
+                min=min,
+                max=max,
+                step=step,
+                value=value,
+                marks=marks,
+                tooltip={'always_visible': False},
+                className='sliderslider'),
+
+    ],
+        className='row'
     )
     return slider
 # data = create_more_date(1000)
