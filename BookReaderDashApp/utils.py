@@ -8,7 +8,6 @@ import dash_core_components as dcc
 import dash_daq as daq
 
 
-
 def import_and_format(datafile):
     data = pd.read_csv(datafile)
     data.drop(columns=['channelId'], inplace=True)
@@ -70,6 +69,7 @@ def generate_slider(id_cl, id_rs, min, max, step, value, marks_delta, symbol):
     marks = {i: {'label': f'{int(i/100000)}e5{symbol}', 'style': {'font-size': '8px'}}
              for i in range(min, max+marks_delta, marks_delta)} if symbol=='ms' \
         else {i: f'{i}{symbol}' for i in range(min, max+marks_delta, marks_delta)}
+
     slider = html.Div([
             daq.BooleanSwitch(
                 id=id_cl,
@@ -77,7 +77,6 @@ def generate_slider(id_cl, id_rs, min, max, step, value, marks_delta, symbol):
                 label={'label': 'All', 'style': {'fontSize': '10%'}},
                 className='sliderbutton',
             ),
-
             dcc.RangeSlider(
                 id=id_rs,
                 min=min,
@@ -91,6 +90,8 @@ def generate_slider(id_cl, id_rs, min, max, step, value, marks_delta, symbol):
     ],
         className='row'
     )
+
+
     return slider
 # data = create_more_date(1000)
 # save_data(data)
