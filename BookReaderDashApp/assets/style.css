@@ -443,6 +443,13 @@ body {
 h5 {
   font-weight: 500 !important;
 }
+hr {
+  width: 50%;
+  margin-bottom: 20px;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 20px;
+}
 .plotly-logo {
   height: 60px;
   width: auto;

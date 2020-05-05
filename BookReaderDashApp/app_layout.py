@@ -9,18 +9,34 @@ def generate_app_layout(fig, msuks):
         html.Div([
             html.Div(
                 html.H3('Book Reader'),
-                className='title'),
+                className='title',
+                style={'textAlign': 'center'}),
+            html.Hr(),
             dcc.Dropdown(
                 id='msuk_selector',
                 options=[{'label': msuk, 'value': msuk} for msuk in msuks],
                 value=79889147
             ),
-            dcc.DatePickerSingle(
-                id='date_picker',
-                min_date_allowed=dt(2010, 8, 5),
-                max_date_allowed=dt.today(),
-                initial_visible_month=dt(2019, 8, 7),
-                date=str(dt(2019, 8, 7))
+            html.Hr(),
+            # dcc.DatePickerSingle(
+            #     id='date_picker',
+            #     min_date_allowed=dt(2010, 8, 5),
+            #     max_date_allowed=dt.today(),
+            #     initial_visible_month=dt(2019, 8, 7),
+            #     date=str(dt(2019, 8, 7)),
+            # ),
+            html.Div([
+                html.Div('Date to display: ',
+                         style={'width': '30%', 'margin': 'auto'}),
+                dcc.DatePickerSingle(
+                    id='date_picker',
+                    min_date_allowed=dt(2010, 8, 5),
+                    max_date_allowed=dt.today(),
+                    initial_visible_month=dt(2019, 8, 7),
+                    date=str(dt(2019, 8, 7)),
+                    style={'width': '70%'}
+                )],
+                className='row'
             ),
             html.Div(
                 children=[

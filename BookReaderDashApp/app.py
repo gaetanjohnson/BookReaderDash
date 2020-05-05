@@ -15,16 +15,15 @@ from utils import import_and_format, generate_slider
 # TODO: Choose what and how to display
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
-# names_to_display = ['Time', 'Volume (Bid)', 'Bid', 'Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
+
 df = import_and_format('./data_book_big.csv')
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
 msuks = df['msuk'].unique()
-fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
 
+fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
 fig.update_xaxes(rangeslider_visible=True)
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
 app = dash.Dash(__name__)
 
 app.layout = generate_app_layout(fig, msuks)
