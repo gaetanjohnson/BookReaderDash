@@ -31,7 +31,7 @@ def create_prices(number):
 
 
 def save_data(data):
-    with open('data_book_big.csv', mode='w') as f:
+    with open('data/data_book_big.csv', mode='w') as f:
         writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for line in data:
             writer.writerow(line)
