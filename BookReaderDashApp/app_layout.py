@@ -4,7 +4,7 @@ import dash_table
 from utils import generate_slider
 from datetime import datetime as dt
 
-def generate_app_layout(fig, msuks):
+def generate_app_layout(msuks):
     app_layout = html.Div([
         html.Div([
             html.Div(
@@ -49,7 +49,9 @@ def generate_app_layout(fig, msuks):
             dcc.Tabs([
                 dcc.Tab(label='Top of the Book',
                         children=[
-                            dcc.Graph(figure=fig),
+                            dcc.Graph(id='bid_ask_graph',
+                                      # figure=fig
+                                      ),
                         ]),
                 dcc.Tab(label='Depth Analysis',
                         children=['TODO'])
