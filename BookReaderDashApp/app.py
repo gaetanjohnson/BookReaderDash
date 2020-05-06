@@ -26,6 +26,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 df = BookLineReader.load("data/data_book_big.csv")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
+df['spread'] = df['bidPx'] - df['askPx']
 msuks = df['msuk'].unique()
 
 fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
