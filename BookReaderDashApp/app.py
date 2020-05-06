@@ -29,16 +29,11 @@ df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
 df['spread'] = df['bidPx'] - df['askPx']
 msuks = df['msuk'].unique()
 
-fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
-
-fig.update_xaxes(rangeslider_visible=True)
-
 app = dash.Dash(__name__)
 
-app.layout = generate_app_layout(fig, msuks)
+app.layout = generate_app_layout(msuks)
 
-
-@app.callback(Output('table', 'data'),
+@app.callback([Output('table', 'data'), Output('bid_ask_graph', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value')])
@@ -63,8 +58,13 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     if msuk is not None:
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     df_to_display = filtered_df[columns_to_display].to_dict('records')
-    return df_to_display
+    figure = generate_figure(filtered_df)
+    return df_to_display, figure
 
+def generate_figure(df):
+    fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
+    fig.update_xaxes(rangeslider_visible=True)
+    return fig
 
 @app.callback(
     Output('output_timeframe', 'children'),
@@ -72,34 +72,47 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
      Input('second_slider', 'value'), Input('micros_slider', 'value'),
      Input('date_picker', 'date')])
 def generate_output_timeframe(hour_value, minute_value, second_value, micros_value, date):
-    return f'Selected Timeframe: {date.split()[0]} {hour_value}h {minute_value}min {second_value}s {micros_value}ms'
+    is_hour_range = hour_value[0] < hour_value[1]
+    is_minute_range = minute_value[0] < minute_value[1]
+    is_second_range = second_value[0] < second_value[1]
+    if is_hour_range:
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h to {hour_value[1]}h'
+    elif is_minute_range:
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min to {minute_value[1]}min'
+    elif is_second_range:
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}s to {second_value[1]}s'
+    else:
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}s {micros_value}ms'
 
 
 @app.callback(
     Output('hour_slider', 'value'),
-    [Input('all_hour', 'on')])
-def set_hour_values(value):
-    return [0, 24] if value else [6, 10]
+    [Input('all_hour', 'on'), ])
+def set_hour_values(button):
+    return [0, 24] if button else [6, 10]
 
 
 @app.callback(
-    Output('minute_slider', 'value'),
-    [Input('all_min', 'on')])
-def set_hour_values(value):
-    return [0, 60] if value else [4, 10]
-
-
-@app.callback(
-    Output('second_slider', 'value'),
-    [Input('all_second', 'on')])
-def set_hour_values(value):
-    return [0, 60] if value else [5, 30]
+    [Output('minute_slider', 'value'), Output('minute_slider', 'disabled')],
+    [Input('all_min', 'on'), Input('hour_slider', 'value')])
+def set_min_values(button, value):
+    is_hour_range = value[0] < value[1]
+    return ([0, 60], is_hour_range) if (button or is_hour_range) else ([4, 10], is_hour_range)
 
 @app.callback(
-    Output('micros_slider', 'value'),
-    [Input('all_micros', 'on')])
-def set_micros_values(value):
-    return [0, 1000000] if value else [597045, 650000]
+    [Output('second_slider', 'value'), Output('second_slider', 'disabled')],
+    [Input('all_second', 'on'), Input('minute_slider', 'value')])
+def set_sec_values(button, value):
+    is_minute_range = value[0] < value[1]
+    return ([0, 60], is_minute_range) if (button or is_minute_range) else ([5, 30], is_minute_range)
+
+@app.callback(
+    [Output('micros_slider', 'value'), Output('micros_slider', 'disabled')],
+    [Input('all_micros', 'on'), Input('second_slider', 'value')])
+def set_micros_values(button, value):
+    is_second_range = value[0] < value[1]
+    return ([0, 1000000], is_second_range) if (button or is_second_range) else ([597045, 650000], is_second_range)
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
