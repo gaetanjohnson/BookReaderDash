@@ -2,11 +2,8 @@ import numpy as np
 import csv
 import pandas as pd
 from pathlib import Path
-path = 'data/data_book_big.csv'
 
 # Creates new set of data
-# TODO: Stop using fixed values in fonction
-
 class DataGenerator:
     FIRST_LINE = 'nanosEpoch,time,msuk,source,cbidPx,cbidSz,caskPx,caskSz,bidPx,bidSz,askPx,askSz,tradePx,tradeSz,channelId,seqNum,msgIdx'
     DATA_DIR = Path(__file__).resolve().parent.joinpath("../data")
@@ -15,6 +12,8 @@ class DataGenerator:
     def _save_data(cls, mode, path, data):
         with open(path, mode='w') as f:
             writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            if mode == 'top':
+                writer.writerow(cls.FIRST_LINE)
             for line in data:
                 writer.writerow(line) if mode == 'top' else f.write(line + '\n')
 
