@@ -23,17 +23,16 @@ columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'trade
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 df = TopBookReader.load("data/data_book_big.csv")
-# df = BookReader.load("data/data_entries.txt")
+# df = BookReader.load("data/new_data.txt")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
-df['spread'] = df['bidPx'] - df['askPx']
 msuks = df['msuk'].unique()
 
 app = dash.Dash(__name__)
 
 app.layout = generate_app_layout(msuks)
 
-@app.callback([Output('table', 'data'), Output('bid_ask_graph', 'figure')],
+@app.callback([Output('table', 'data'), Output('bid_ask_graph', 'figure'), Output('spread_graph', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value')])
@@ -58,12 +57,13 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     if msuk is not None:
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     df_to_display = filtered_df[columns_to_display].to_dict('records')
-    figure = generate_figure(filtered_df)
-    return df_to_display, figure
+    bid_ask_figure = generate_figure(filtered_df, y="bidPx")
+    spread_figure = generate_figure(filtered_df, y="spread")
+    return df_to_display, bid_ask_figure, spread_figure
 
-def generate_figure(df):
-    fig = px.line(df, x="time_readable", y="bidPx", title="Bid")
-    fig.update_xaxes(rangeslider_visible=True)
+def generate_figure(df, y):
+    fig = px.line(df, x="time_readable", y=y)
+    fig.update_xaxes(rangeslider_visible=False)
     return fig
 
 @app.callback(
@@ -76,11 +76,11 @@ def generate_output_timeframe(hour_value, minute_value, second_value, micros_val
     is_minute_range = minute_value[0] < minute_value[1]
     is_second_range = second_value[0] < second_value[1]
     if is_hour_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h to {hour_value[1]}h'
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}-{hour_value[1]} h'
     elif is_minute_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min to {minute_value[1]}min'
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}-{minute_value[1]}min'
     elif is_second_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}s to {second_value[1]}s'
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}-{second_value[1]}s'
     else:
         return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}s {micros_value}ms'
 

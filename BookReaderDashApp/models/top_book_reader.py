@@ -28,5 +28,7 @@ class TopBookReader(DataReader):
         # No direction because it is the top of the book (does not represent a trade)
         df["direction"] = ""
 
+        df["spread"] = df["askPx"] - df["bidPx"]
+
         if not inplace:
             return df

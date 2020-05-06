@@ -9,7 +9,7 @@ class DataReader(abc.ABC):
     todo start using pandas style docstrings for documentation
     """
 
-    _required_columns = ("nanosEpoch", "bidPx", "bidSz", "askPx", "askSz", "tradePx", "tradeSz", "direction")
+    _required_columns = ("nanosEpoch", "bidPx", "bidSz", "askPx", "askSz", "tradePx", "tradeSz", "direction", "spread")
 
     @classmethod
     @abc.abstractmethod

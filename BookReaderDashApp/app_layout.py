@@ -49,9 +49,8 @@ def generate_app_layout(msuks):
             dcc.Tabs([
                 dcc.Tab(label='Top of the Book',
                         children=[
-                            dcc.Graph(id='bid_ask_graph',
-                                      # figure=fig
-                                      ),
+                            dcc.Graph(id='bid_ask_graph'),
+                            dcc.Graph(id='spread_graph')
                         ]),
                 dcc.Tab(label='Depth Analysis',
                         children=['TODO'])
