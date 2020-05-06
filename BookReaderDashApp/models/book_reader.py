@@ -5,7 +5,7 @@ import pandas as pd
 from .base import DataReader
 
 
-class TopBookReader(DataReader):
+class BookReader(DataReader):
     # fixme timezone info is intentionally left off to avoid pandas warnings
     # fixme the data format includes two dates: 'our', 'source', which one to choose?
     # todo write some unittests
@@ -32,7 +32,7 @@ class TopBookReader(DataReader):
 
         df = pd.DataFrame(data).astype({
             "msuk": "int64",
-            "datetime": "datetime64",
+            "datetime": "datetime64[ns]",
             "tradeSz": "int64",
             "bidSz": "int64",
             "askSz": "int64",
