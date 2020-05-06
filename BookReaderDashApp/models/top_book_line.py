@@ -3,7 +3,6 @@ import re
 import pandas as pd
 
 from .base import DataReader
-from .timezones import convert_tzname
 
 
 class TopBookReader(DataReader):
@@ -14,7 +13,7 @@ class TopBookReader(DataReader):
     # compile regex ahead of time
     _compiled_regexes = {
         "msuk": re.compile(r"\w+\((\d+)\)"),
-        "datetime": re.compile(r"our=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) (\w+) flags="),
+        "datetime": re.compile(r"our=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) (?:\w+) flags="),
         "trade": re.compile(r"(?:Buy|Sell) ([^\s]+)@([^\s]+)"),
         "direction" : re.compile(r"Buy|Sell"),
         "bid": re.compile(r"bid:([^\s]+)@([^\s]+)"),
@@ -67,9 +66,7 @@ class TopBookReader(DataReader):
 
         # parsing datetime
         match = cls._unsafe_search(line, line_number, "datetime")
-        # converting timezone name to a standard one if possible
-        date_time, tzname = match.group(1), match.group(2)
-        data_dict["datetime"] = date_time + " " + convert_tzname(tzname)
+        data_dict["datetime"] = match.group(0)
 
         # parsing trade direction
         match = cls._unsafe_search(line, line_number, "direction")
