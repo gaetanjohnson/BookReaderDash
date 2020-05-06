@@ -18,13 +18,6 @@ def generate_app_layout(fig, msuks):
                 value=79889147
             ),
             html.Hr(),
-            # dcc.DatePickerSingle(
-            #     id='date_picker',
-            #     min_date_allowed=dt(2010, 8, 5),
-            #     max_date_allowed=dt.today(),
-            #     initial_visible_month=dt(2019, 8, 7),
-            #     date=str(dt(2019, 8, 7)),
-            # ),
             html.Div([
                 html.Div('Date to display: ',
                          style={'width': '30%', 'margin': 'auto'}),
@@ -58,24 +51,34 @@ def generate_app_layout(fig, msuks):
                 id='table',
                 columns=[{'name': ['DateTime', 'Date'], 'id': 'date'},
                          {'name': ['DateTime', 'Time'], 'id': 'time'},
-                         {"name": ["Bid", "Volume"], "id": 'bidSz'},
-                         {"name": ["Bid", "Price"], "id": 'bidPx'},
-                         {"name": ["Ask", "Price"], "id": 'askPx'},
-                         {"name": ["Ask", "Volume"], "id": 'askSz'},
-                         {"name": ["Trade", "Price"], "id": 'tradePx'},
-                         {"name": ["Trade", "Volume"], "id": 'tradeSz'}],
-    # {"name": i, "id": j} for (i,j) in zip(names_to_display, columns_to_display)],
+                         {'name': ['Bid', 'Volume'], 'id': 'bidSz'},
+                         {'name': ['Bid', 'Price'], 'id': 'bidPx'},
+                         {'name': ['Ask', 'Price'], 'id': 'askPx'},
+                         {'name': ['Ask', 'Volume'], 'id': 'askSz'},
+                         {'name': ['Trade', 'Price'], 'id': 'tradePx'},
+                         {'name': ['Trade', 'Volume'], 'id': 'tradeSz'},
+                         {'name': ['Trade', 'Direction'], 'id': 'direction'}],
                 style_data_conditional=[
                     {
                         'if': {'row_index': 'odd'},
                         'backgroundColor': 'rgb(248, 248, 248)'
-                    }],
+                    }] + [
+                    {
+                        'if': {'column_id': c},
+                        'borderLeft': '1px solid #506783'
+                    } for c in ['date', 'bidSz', 'tradePx']] + [
+                    {
+                    'if': {'column_id': 'direction'},
+                    'borderRight': '1px solid #506783'}
+                ],
+
                 style_cell={
                         'textAlign': 'center'
                     },
                 style_header={
                     'backgroundColor': 'rgb(230, 230, 230)',
-                    'fontWeight': 'bold'
+                    'fontWeight': 'bold',
+                    'border': '1px solid #506783'
                 },
                 merge_duplicate_headers=True
             ),

@@ -16,6 +16,7 @@ class TopBookReader(DataReader):
         "msuk": re.compile(r"\w+\((\d+)\)"),
         "datetime": re.compile(r"our=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) (\w+) flags="),
         "trade": re.compile(r"(?:Buy|Sell) ([^\s]+)@([^\s]+)"),
+        "direction" : re.compile(r"Buy|Sell"),
         "bid": re.compile(r"bid:([^\s]+)@([^\s]+)"),
         "cbid": re.compile(r"cbid:([^\s]+)@([^\s]+)"),
         "ask": re.compile(r"ask:([^\s]+)@([^\s]+)"),
@@ -43,6 +44,7 @@ class TopBookReader(DataReader):
             "askPx": "float64",
             "cbidPx": "float64",
             "caskPx": "float64",
+            "direction": "string",
         })
 
         df["nanosEpoch"] = df["datetime"].values.astype("int64")
@@ -68,6 +70,10 @@ class TopBookReader(DataReader):
         # converting timezone name to a standard one if possible
         date_time, tzname = match.group(1), match.group(2)
         data_dict["datetime"] = date_time + " " + convert_tzname(tzname)
+
+        # parsing trade direction
+        match = cls._unsafe_search(line, line_number, "direction")
+        data_dict["direction"] = match.group(0)
 
         # parsing price and trade data
         for attr in ("trade", "bid", "cbid", "ask", "cask"):

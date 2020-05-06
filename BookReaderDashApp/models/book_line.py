@@ -25,5 +25,8 @@ class BookLineReader(DataReader):
         df['microsecond'] = df['datetime'].dt.microsecond
         df['time'] = df['datetime'].dt.time
 
+        # No direction because it is the top of the book (does not represent a trade)
+        df['direction'] = ''
+
         if not inplace:
             return df
