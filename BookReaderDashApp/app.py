@@ -8,7 +8,7 @@ import plotly.express as px
 
 from app_layout import generate_app_layout
 
-from models import BookLineReader, TopBookReader
+from models import BookReader, TopBookReader
 
 
 
@@ -22,8 +22,8 @@ columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'trade
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-# df = TopBookReader.load("data/data_entries.txt")
-df = BookLineReader.load("data/data_book_big.csv")
+df = TopBookReader.load("data/data_book_big.csv")
+# df = BookReader.load("data/data_entries.txt")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
 msuks = df['msuk'].unique()
