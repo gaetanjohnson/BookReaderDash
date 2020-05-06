@@ -17,12 +17,12 @@ from models import BookLineReader, TopBookReader
 # TODO: Change layout style
 # TODO: Choose what and how to display
 
-columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz']
+columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
 # names_to_display = ['Time', 'Volume (Bid)', 'Bid', 'Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-#df = TopBookReader.load("data/data_entries.txt")
+# df = TopBookReader.load("data/data_entries.txt")
 df = BookLineReader.load("data/data_book_big.csv")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
