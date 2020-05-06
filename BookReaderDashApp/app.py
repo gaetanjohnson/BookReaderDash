@@ -26,6 +26,7 @@ df = TopBookReader.load("data/data_book_big.csv")
 # df = BookReader.load("data/data_entries.txt")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
+df['spread'] = df['bidPx'] - df['askPx']
 msuks = df['msuk'].unique()
 
 fig = px.line(df, x="time_readable", y="bidPx", title="Bid")

@@ -46,7 +46,14 @@ def generate_app_layout(fig, msuks):
         ),
 
         html.Div([
-            dcc.Graph(figure=fig),
+            dcc.Tabs([
+                dcc.Tab(label='Top of the Book',
+                        children=[
+                            dcc.Graph(figure=fig),
+                        ]),
+                dcc.Tab(label='Depth Analysis',
+                        children=['TODO'])
+            ]),
             dash_table.DataTable(
                 id='table',
                 columns=[{'name': ['DateTime', 'Date'], 'id': 'date'},
@@ -58,6 +65,7 @@ def generate_app_layout(fig, msuks):
                          {'name': ['Trade', 'Price'], 'id': 'tradePx'},
                          {'name': ['Trade', 'Volume'], 'id': 'tradeSz'},
                          {'name': ['Trade', 'Direction'], 'id': 'direction'}],
+                # TODO CLean the style below
                 style_data_conditional=[
                     {
                         'if': {'row_index': 'odd'},
