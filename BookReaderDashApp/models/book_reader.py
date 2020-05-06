@@ -44,6 +44,7 @@ class BookReader(DataReader):
             "cbidPx": "float64",
             "caskPx": "float64",
             "direction": "string",
+            "spread": 'float64'
         })
 
         df["nanosEpoch"] = df["datetime"].values.astype("int64")
@@ -78,6 +79,8 @@ class BookReader(DataReader):
             size, price = match.group(1), match.group(2)
             data_dict[attr + "Sz"] = size
             data_dict[attr + "Px"] = price
+
+        data_dict['spread'] = data_dict['askPx'] - data_dict['bidPx']
 
         return data_dict
 
