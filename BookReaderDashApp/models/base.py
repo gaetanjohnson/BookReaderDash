@@ -4,6 +4,10 @@ import pandas as pd
 
 
 class DataReader(abc.ABC):
+    """
+    Abstract data reader class. All subclasses must implement a `load` class method.
+    todo start using pandas style docstrings for documentation
+    """
 
     _required_columns = ("nanosEpoch", "bidPx", "bidSz", "askPx", "askSz", "tradePx", "tradeSz")
 
@@ -12,6 +16,7 @@ class DataReader(abc.ABC):
     def load(cls, path):
         """
         Load data from custom format.
+        Returns pd.DataFrame containing all required columns as specified above
         """
         pass
 
@@ -34,6 +39,7 @@ class DataReader(abc.ABC):
 
     @staticmethod
     def _validate(df):
+        # fixme do we validate dtypes too?
         if any(c not in df.columns for c in DataReader._required_columns):
             raise RuntimeError(f"Non conforming. Missing required columns (one of {DataReader._required_columns}).")
 
