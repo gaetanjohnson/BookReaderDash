@@ -1,3 +1,3 @@
 from .base import DataReader
-from .top_book_reader import BookLineReader
-from .book_reader import TopBookReader
+from .book_reader import BookReader
+from .top_book_reader import TopBookReader

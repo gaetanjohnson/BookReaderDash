@@ -66,7 +66,7 @@ class BookReader(DataReader):
 
         # parsing datetime
         match = cls._unsafe_search(line, line_number, "datetime")
-        data_dict["datetime"] = match.group(0)
+        data_dict["datetime"] = match.group(1)
 
         # parsing trade direction
         match = cls._unsafe_search(line, line_number, "direction")
