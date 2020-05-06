@@ -1,4 +1,4 @@
 from pathlib import Path
 
 
-DATA_DIR = Path(__file__).resolve().parent.joinpath("../data")
+DATA_DIR = Path(__file__).parent.joinpath("../data").resolve()
