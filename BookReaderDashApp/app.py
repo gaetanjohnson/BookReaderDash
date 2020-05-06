@@ -10,8 +10,6 @@ from app_layout import generate_app_layout
 
 from models import BookReader, TopBookReader
 
-
-
 # TODO: Handle Data (with SQL database ?)
 # TODO: Handle the 2nd form of data
 # TODO: Change layout style
@@ -26,17 +24,30 @@ df = TopBookReader.load("data/data_book_big.csv")
 # df = BookReader.load("data/new_data.txt")
 
 df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
+
+features = [
+    {"label": "Trade Price", "value": "tradePx"},
+    {"label": "Trade Size", "value": "tradeSz"},
+    {"label": "Bid Size", "value": "bidSz"},
+    {"label": "Bid Price", "value": "bidPx"},
+    {"label": "Ask Size", "value": "askSz"},
+    {"label": "Ask Price", "value": "askPx"},
+    {"label": "Spread", "value": "spread"},
+]
+
 msuks = df['msuk'].unique()
 
 app = dash.Dash(__name__)
 
-app.layout = generate_app_layout(msuks)
+app.layout = generate_app_layout(msuks, features)
 
-@app.callback([Output('table', 'data'), Output('bid_ask_graph', 'figure'), Output('spread_graph', 'figure')],
+
+@app.callback([Output('table', 'data'), Output('time_series', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
-               Input('date_picker', 'date'), Input('msuk_selector', 'value')])
-def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk):
+               Input('date_picker', 'date'), Input('msuk_selector', 'value'),
+               Input('feature_selector', 'value')])
+def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk, feature):
     filtered_df = df.copy()
     if date is not None:
         date = dt.strptime(re.split(r"T| ", date)[0], '%Y-%m-%d')
@@ -57,14 +68,15 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     if msuk is not None:
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     df_to_display = filtered_df[columns_to_display].to_dict('records')
-    bid_ask_figure = generate_figure(filtered_df, y="bidPx")
-    spread_figure = generate_figure(filtered_df, y="spread")
-    return df_to_display, bid_ask_figure, spread_figure
+    figure = generate_figure(filtered_df, feature)
+    return df_to_display, figure
 
-def generate_figure(df, y):
-    fig = px.line(df, x="time_readable", y=y)
+
+def generate_figure(df, feature):
+    fig = px.line(df, x="time_readable", y=feature)
     fig.update_xaxes(rangeslider_visible=False)
     return fig
+
 
 @app.callback(
     Output('output_timeframe', 'children'),
@@ -99,12 +111,14 @@ def set_min_values(button, value):
     is_hour_range = value[0] < value[1]
     return ([0, 60], is_hour_range) if (button or is_hour_range) else ([4, 10], is_hour_range)
 
+
 @app.callback(
     [Output('second_slider', 'value'), Output('second_slider', 'disabled')],
     [Input('all_second', 'on'), Input('minute_slider', 'value')])
 def set_sec_values(button, value):
     is_minute_range = value[0] < value[1]
     return ([0, 60], is_minute_range) if (button or is_minute_range) else ([5, 30], is_minute_range)
+
 
 @app.callback(
     [Output('micros_slider', 'value'), Output('micros_slider', 'disabled')],

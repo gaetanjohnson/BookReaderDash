@@ -1,10 +1,12 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
+
 from utils import generate_slider
 from datetime import datetime as dt
 
-def generate_app_layout(msuks):
+
+def generate_app_layout(msuks, features):
     app_layout = html.Div([
         html.Div([
             html.Div(
@@ -47,10 +49,14 @@ def generate_app_layout(msuks):
 
         html.Div([
             dcc.Tabs([
-                dcc.Tab(label='Top of the Book',
+                dcc.Tab(label='Time Series',
                         children=[
-                            dcc.Graph(id='bid_ask_graph'),
-                            dcc.Graph(id='spread_graph')
+                            dcc.Dropdown(
+                                id='feature_selector',
+                                options=features,
+                                value=features[0]["value"],
+                            ),
+                            dcc.Graph(id='time_series')
                         ]),
                 dcc.Tab(label='Depth Analysis',
                         children=['TODO'])
