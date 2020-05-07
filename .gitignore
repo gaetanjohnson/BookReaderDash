@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+BookReaderDashApp/cache-directory
+
 # Mac metadata
 .DS_Store
 
