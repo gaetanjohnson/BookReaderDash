@@ -25,7 +25,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # df = BookReader.load("data/data_line_new.data")
 data_files = ['']
 
-df = load_data("data_line_new.txt")
+df = load_data("data_lines_big.data")
 
 features = [
     {"label": "Bid Size", "value": "bidSz"},

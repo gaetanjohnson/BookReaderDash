@@ -36,12 +36,13 @@ def generate_slider(id_bs, id_rs, min, max, step, value, marks_delta, symbol):
 
 def load_data(file):
     filename, file_extension = os.path.splitext(file)
-    pkl_path = Path('data/pickle_files/' + filename + '.pkl')
+    pkl_path = Path('cache/pickle/' + filename + '.pkl')
     pickle_exists = pkl_path.exists()
 
-    if file_extension not in ['.txt', '.csv']:
-        raise TypeError('File supported are .csv or .txt')
-    if file_extension == '.txt':
+    if file_extension not in ['.data', '.csv']:
+        raise TypeError('File supported are .csv or .data')
+
+    if file_extension == '.data':
         reader = BookReader()
     else:
         reader = TopBookReader()
