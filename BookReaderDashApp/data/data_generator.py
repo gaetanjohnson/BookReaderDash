@@ -164,6 +164,6 @@ class DataGenerator:
 # mode = 'top'
 # params = {}
 # DataGenerator.create_more_data(quantity, mode, **params)
-file_path = './btc_data.csv'
+file_path = './BitMEX_XBTUSD_RAW.csv'
 mode = 'line'
 DataGenerator.create_more_data_from_file(file_path, mode)

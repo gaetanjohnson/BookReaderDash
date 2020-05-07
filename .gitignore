@@ -145,6 +145,5 @@ Session.vim
 
 # intelliJ
 .idea/
-BookReaderDashApp/data/data_linenew.txt
 BookReaderDashApp/data/data_topnew.csv
 BookReaderDashApp/data/btc_data.csv
