@@ -4,6 +4,7 @@ from .base import DataReader
 
 
 class TopBookReader(DataReader):
+    size_to_unit = {10: 's', 13: 'ms', 16: 'us', 19: 'ns'}
 
     @classmethod
     def load(cls, path):
@@ -16,8 +17,11 @@ class TopBookReader(DataReader):
             # no support for cases where deep copy ans shallow copy are different yet
             df = df.copy()
 
+        # We have to manually determine the unit of the timestamp, because it is not done properly by pandas
+        unit = cls.size_to_unit[len(str(df["nanosEpoch"][0]))]
+
         df.drop(columns=["channelId"], inplace=True)
-        df["datetime"] = pd.to_datetime(df["nanosEpoch"])
+        df["datetime"] = pd.to_datetime(df["nanosEpoch"], unit=unit)
         df["date"] = df["datetime"].dt.date
         df["hour"] = df["datetime"].dt.hour
         df["minute"] = df["datetime"].dt.minute

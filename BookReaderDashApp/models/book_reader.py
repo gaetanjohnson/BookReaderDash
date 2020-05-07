@@ -13,7 +13,7 @@ class BookReader(DataReader):
     # compile regex ahead of time
     _compiled_regexes = {
         "msuk": re.compile(r"\w+\((\d+)\)"),
-        "datetime": re.compile(r"our=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) (?:\w+) flags="),
+        "datetime": re.compile(r"our=(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?) (?:\w+) flags="),
         "trade": re.compile(r"(?:Buy|Sell) ([^\s]+)@([^\s]+)"),
         "direction" : re.compile(r"Buy|Sell"),
         "bid": re.compile(r"bid:([^\s]+)@([^\s]+)"),
@@ -78,7 +78,7 @@ class BookReader(DataReader):
             match = cls._unsafe_search(line, line_number, attr)
             size, price = match.group(1), match.group(2)
             data_dict[attr + "Sz"] = size
-            data_dict[attr + "Px"] = price
+            data_dict[attr + "Px"] = float(price)
 
         data_dict['spread'] = data_dict['askPx'] - data_dict['bidPx']
 

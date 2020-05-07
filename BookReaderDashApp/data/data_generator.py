@@ -13,7 +13,7 @@ class DataGenerator:
         with open(path, mode='w') as f:
             writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             if mode == 'top':
-                writer.writerow(cls.FIRST_LINE)
+                f.write(cls.FIRST_LINE)
             for line in data:
                 writer.writerow(line) if mode == 'top' else f.write(line + '\n')
 
@@ -31,6 +31,7 @@ class DataGenerator:
         vol = kwargs.get('vol', 0.003)
         base_price = kwargs.get('base_price', 82.2)
         seqNum = kwargs.get('seqNum', 597283)
+
         times = cls._generate_times(quantity, start_nanos_epoch, average_time_delta)
         datetimes = pd.to_datetime(times)
         volumes = cls._generate_volumes(quantity, average_volume, variance)
@@ -39,6 +40,7 @@ class DataGenerator:
         prices_ask = prices_bid + spreads
         trade_prices = cls._generate_trades(quantity)
         volumes_bid, volumes_ask, volumes_trade = volumes[:quantity], volumes[quantity:2*quantity], volumes[:2*quantity]
+        direction = cls._generate_directions(quantity)
         data = []
         for i in range(quantity):
             if mode == 'top':
@@ -47,13 +49,68 @@ class DataGenerator:
                         prices_bid[i], volumes_bid[i], prices_ask[i], volumes_ask[i],
                         trade_prices[i], volumes_trade[i], channelId, seqNum, msgIdx]
             else:
-                line = f'source Modify CAU19({msuk}) Sell {volumes_trade[i]}@{trade_prices[i]} (new qty/price) ' \
+                line = f'source Modify CAU19({msuk}) {direction[i]} {volumes_trade[i]}@{trade_prices[i]} (new qty/price) ' \
                        f'lvl=6 new number of orders = 31 src={datetimes[i]} CDT our={datetimes[i]} CDT flags= ' \
                        f'seq={seqNum} bid:{volumes_bid[i]}@{prices_bid[i]} ask:{volumes_ask[i]}@{prices_ask[i]} ' \
                        f'cbid:{volumes_bid[i]}@{prices_bid[i]} cask:{volumes_ask[i]}@{prices_ask[i]}'
 
             data.append(line)
         return data
+
+    @classmethod
+    def _generate_data_from_file(cls, df, mode, **kwargs):
+        msuk = kwargs.get('msuk', '000')
+        source = kwargs.get('source', 'EUREX')
+        channelId = kwargs.get('channelId', 0)
+        msgIdx = kwargs.get('msgIdx', 0)
+        seqNum = kwargs.get('seqNum', 597283)
+        direction = df['type'].map({'a': 'Sell', 'b': 'Buy'})
+        volumes_trade = df['amount'].values
+        trade_prices = df['price'].values
+
+        df_ask, df_bid = df[df['type'] == 'a'], df[df['type'] == 'b']
+        df_best_ask = df_ask.loc[df_ask.groupby('date')['price'].idxmin()].drop(columns=['type'])
+        df_best_bid = df_bid.loc[df_bid.groupby('date')['price'].idxmax()].drop(columns=['type'])
+        df_best_ask.columns = ['date', 'best_ask', 'best_ask_vol']
+        df_best_bid.columns = ['date', 'best_bid', 'best_bid_vol']
+        prices_ask = df_best_ask['best_ask'].values
+        prices_bid = df_best_bid['best_bid'].values
+        volumes_ask = df_best_ask['best_ask_vol'].values
+        volumes_bid = df_best_bid['best_bid_vol'].values
+        data = []
+
+        if mode == 'top':
+            times = df_best_ask['date'].values
+            datetimes = pd.to_datetime(times, unit='ms').values
+            for i, time in enumerate(times):
+                line = [time, datetimes[i], msuk, source,
+                        prices_bid[i], volumes_bid[i], prices_ask[i], volumes_ask[i],
+                        prices_bid[i], volumes_bid[i], prices_ask[i], volumes_ask[i],
+                        0, 0, channelId, seqNum, msgIdx]
+                data.append(line)
+
+        else:
+            df = df.join(df_best_ask.set_index('date'), on='date')
+            df = df.join(df_best_bid.set_index('date'), on='date')
+            prices_ask = df['best_ask'].values
+            prices_bid = df['best_bid'].values
+            volumes_ask = df['best_ask_vol'].values
+            volumes_bid = df['best_bid_vol'].values
+            times = df['date'].values
+            datetimes = pd.to_datetime(times, unit='ms').values
+
+            for i, time in enumerate(times):
+                distance = (prices_bid[i] - trade_prices[i]) / prices_bid[i] if direction[i] == 'Buy' \
+                    else (trade_prices[i] - prices_ask[i]) / prices_ask[i]
+                if distance < 0.02:
+                    line = f'source Modify CAU19({msuk}) {direction[i]} {volumes_trade[i]}@{trade_prices[i]} (new qty/price) ' \
+                           f'lvl=6 new number of orders = 31 src={datetimes[i]} CDT our={datetimes[i]} CDT flags= ' \
+                           f'seq={seqNum} bid:{volumes_bid[i]}@{prices_bid[i]} ask:{volumes_ask[i]}@{prices_ask[i]} ' \
+                           f'cbid:{volumes_bid[i]}@{prices_bid[i]} cask:{volumes_ask[i]}@{prices_ask[i]}'
+
+                    data.append(line)
+        return data
+
 
     @classmethod
     def _generate_times(cls, quantity, start_nanos_epoch, average_time_delta):
@@ -69,6 +126,7 @@ class DataGenerator:
         prices = base_price * np.exp(np.cumsum(percent_changes))
         return np.round(prices, 3)
 
+    # Not very realistic
     @classmethod
     def _generate_spreads(cls, quantity):
         return np.round(np.random.gamma(0.2, 0.1, size=quantity), 2)
@@ -77,6 +135,10 @@ class DataGenerator:
     @classmethod
     def _generate_trades(cls, quantity):
         return [0] * quantity
+
+    @classmethod
+    def _generate_directions(cls, quantity):
+        return np.random.choice(['Buy', 'Sell'], quantity)
 
     @classmethod
     def create_more_data(cls, quantity, mode='top', **kwargs):
@@ -88,7 +150,21 @@ class DataGenerator:
         path = cls.DATA_DIR / file_name
         cls._save_data(mode, path, data)
 
+    @classmethod
+    def create_more_data_from_file(cls, filepath, mode='top', **kwargs):
+        if mode not in ['top', 'line']:
+            raise ValueError('Data Generation mode should be either top or line')
+        df = pd.read_csv(filepath)
+        data = cls._generate_data_from_file(df, mode, **kwargs)
+        extension = '.csv' if mode == 'top' else '.txt'
+        file_name = 'data_' + mode + 'new' + extension
+        path = cls.DATA_DIR / file_name
+        cls._save_data(mode, path, data)
+
 # quantity = 200
 # mode = 'top'
 # params = {}
 # DataGenerator.create_more_data(quantity, mode, **params)
+file_path = './btc_data.csv'
+mode = 'line'
+DataGenerator.create_more_data_from_file(file_path, mode)
