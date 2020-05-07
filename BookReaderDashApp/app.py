@@ -20,10 +20,10 @@ columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'trade
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-df = TopBookReader.load("data/data_book_big.csv")
+# df = TopBookReader.load("data/data_book_big.csv")
 # df = BookReader.load("data/new_data.txt")
-
-df['time_readable'] = df['nanosEpoch'] - 1565157926599450000
+# df = TopBookReader.load("data/data_topnew.csv")
+df = BookReader.load("data/data_linenew.txt")
 
 features = [
     {"label": "Trade Price", "value": "tradePx"},
@@ -73,7 +73,7 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
 
 
 def generate_figure(df, feature):
-    fig = px.line(df, x="time_readable", y=feature)
+    fig = px.line(df, x="nanosEpoch", y=feature)
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
