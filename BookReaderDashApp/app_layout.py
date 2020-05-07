@@ -1,9 +1,10 @@
+from datetime import datetime as dt
+
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 
 from utils import generate_slider
-from datetime import datetime as dt
 
 
 def generate_app_layout(msuks, features):

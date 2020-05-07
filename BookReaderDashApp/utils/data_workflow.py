@@ -16,16 +16,18 @@ def load_data(file, use_cache=False):
     pkl_path = Path('cache/pickle/' + filename + '.pkl')
     pickle_exists = pkl_path.exists()
 
+    if use_cache and not pickle_exists:
+        raise RuntimeError(f"File {file} is not in cache.")
 
     if file_extension == '.data':
-        reader = BookReader()
+        reader = BookReader
     else:
-        reader = TopBookReader()
+        reader = TopBookReader
 
-    if not pickle_exists:
+    if use_cache:
+        df = reader.deserialize(pkl_path)
+    else:
         df = reader.load('data/' + file)
         reader.serialize(df, pkl_path)
-    else:
-        df = reader.deserialize(pkl_path)
 
     return df
