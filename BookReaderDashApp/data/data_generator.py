@@ -144,7 +144,7 @@ class DataGenerator:
         if mode not in ['top', 'line']:
             raise ValueError('Data Generation mode should be either top or line')
         data = cls._generate_data(quantity, mode, **kwargs)
-        extension = '.csv' if mode == 'top' else '.txt'
+        extension = '.csv' if mode == 'top' else '.data'
         file_name = 'new_data' + extension
         path = cls.DATA_DIR / file_name
         cls._save_data(mode, path, data)
