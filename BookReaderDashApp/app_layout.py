@@ -17,7 +17,7 @@ def generate_app_layout(msuks, features):
             dcc.Dropdown(
                 id='msuk_selector',
                 options=[{'label': msuk, 'value': msuk} for msuk in msuks],
-                value=79889147
+                value=msuks[0],
             ),
             html.Hr(),
             html.Div([
