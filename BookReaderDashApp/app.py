@@ -28,8 +28,6 @@ df = TopBookReader.load("data/data_topnew.csv")
 # df = BookReader.load("data/data_linenew.data")
 
 features = [
-    {"label": "Trade Price", "value": "tradePx"},   # does it make sense to plot trades ?
-    {"label": "Trade Size", "value": "tradeSz"},
     {"label": "Bid Size", "value": "bidSz"},
     {"label": "Bid Price", "value": "bidPx"},
     {"label": "Ask Size", "value": "askSz"},
