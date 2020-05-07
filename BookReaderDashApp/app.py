@@ -1,5 +1,7 @@
 import re
 from datetime import datetime as dt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 import dash
 from dash.dependencies import Input, Output
@@ -22,11 +24,11 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # df = TopBookReader.load("data/data_book_big.csv")
 # df = BookReader.load("data/new_data.txt")
-# df = TopBookReader.load("data/data_topnew.csv")
-df = BookReader.load("data/data_linenew.txt")
+df = TopBookReader.load("data/data_topnew.csv")
+# df = BookReader.load("data/data_linenew.txt")
 
 features = [
-    {"label": "Trade Price", "value": "tradePx"},
+    {"label": "Trade Price", "value": "tradePx"},   # does it make sense to plot trades ?
     {"label": "Trade Size", "value": "tradeSz"},
     {"label": "Bid Size", "value": "bidSz"},
     {"label": "Bid Price", "value": "bidPx"},
@@ -42,7 +44,7 @@ app = dash.Dash(__name__)
 app.layout = generate_app_layout(msuks, features)
 
 
-@app.callback([Output('table', 'data'), Output('time_series', 'figure')],
+@app.callback([Output('table', 'data'), Output('time_series', 'figure'), Output('bid_ask', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value'),
@@ -50,7 +52,7 @@ app.layout = generate_app_layout(msuks, features)
 def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk, feature):
     filtered_df = df.copy()
     if date is not None:
-        date = dt.strptime(re.split(r"T| ", date)[0], '%Y-%m-%d')
+        date = dt.strptime(re.split(r"[T ]", date)[0], '%Y-%m-%d')
         date = dt.date(date)
         filtered_df = filtered_df[(filtered_df.date == date)]
     if hour_value is not None:
@@ -69,11 +71,24 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     df_to_display = filtered_df[columns_to_display].to_dict('records')
     figure = generate_figure(filtered_df, feature)
-    return df_to_display, figure
+    bid_ask_fig = generate_bid_ask_figure(filtered_df)
+    return df_to_display, figure, bid_ask_fig
 
 
 def generate_figure(df, feature):
-    fig = px.line(df, x="nanosEpoch", y=feature)
+    fig = px.line(df, x="datetime", y=feature)
+    fig.update_xaxes(rangeslider_visible=False)
+    return fig
+
+def generate_bid_ask_figure(df):
+    # fig = go.Figure()
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,  row_heights=[0.7, 0.3])
+    dt = df["datetime"]
+    fig.add_trace(go.Scatter(x=dt, y=df["bidPx"], name='Bid', mode='lines', line_color='red'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
+    fig.update_layout(title_text="Bid Ask and Volumes")
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 

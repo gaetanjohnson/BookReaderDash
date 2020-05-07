@@ -56,7 +56,8 @@ def generate_app_layout(msuks, features):
                                 options=features,
                                 value=features[0]["value"],
                             ),
-                            dcc.Graph(id='time_series')
+                            dcc.Graph(id='time_series'),
+                            dcc.Graph(id='bid_ask')
                         ]),
                 dcc.Tab(label='Depth Analysis',
                         children=['TODO'])
