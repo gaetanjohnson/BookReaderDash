@@ -1,5 +1,4 @@
 import abc
-
 import pandas as pd
 
 
@@ -35,7 +34,7 @@ class DataReader(abc.ABC):
         """
         df = pd.read_pickle(path)
         DataReader._validate(df)
-        return pd.read_csv(path)
+        return pd.read_pickle(path)
 
     @staticmethod
     def _validate(df):

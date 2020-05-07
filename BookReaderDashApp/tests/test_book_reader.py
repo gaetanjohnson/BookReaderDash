@@ -11,5 +11,5 @@ class TestBookReader(TestCase):
         """
         A simple exception safety and consistency check.
         """
-        df = BookReader.load(DATA_DIR.joinpath("data_entries.txt"))
+        df = BookReader.load(DATA_DIR.joinpath("data_lines.data"))
         BookReader._validate(df)

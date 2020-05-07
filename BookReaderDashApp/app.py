@@ -5,27 +5,27 @@ from plotly.subplots import make_subplots
 
 import dash
 from dash.dependencies import Input, Output
-
+from utils import load_data
 import plotly.express as px
 
 from app_layout import generate_app_layout
-
+import time
 from models import BookReader, TopBookReader
 
 # TODO: Handle Data (with SQL database ?)
-# TODO: Handle the 2nd form of data
-# TODO: Change layout style
 # TODO: Choose what and how to display
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
-# names_to_display = ['Time', 'Volume (Bid)', 'Bid', 'Ask', 'Volume (Ask)', 'Trade Price', 'Trade Volume']
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-# df = TopBookReader.load("data/data_book_big.csv")
-# df = BookReader.load("data/new_data.txt")
-df = TopBookReader.load("data/data_topnew.csv")
-# df = BookReader.load("data/data_linenew.data")
+# df = TopBookReader.load("data/data_top_big.csv")
+# df = BookReader.load("data/data_lines_big.data")
+# df = TopBookReader.load("data/data_top_new.csv")
+# df = BookReader.load("data/data_line_new.data")
+data_files = ['']
+
+df = load_data("data_line_new.txt")
 
 features = [
     {"label": "Bid Size", "value": "bidSz"},
@@ -40,7 +40,6 @@ msuks = df['msuk'].unique()
 app = dash.Dash(__name__)
 
 app.layout = generate_app_layout(msuks, features)
-
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'), Output('bid_ask', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
@@ -86,7 +85,7 @@ def generate_bid_ask_figure(df):
     fig.add_trace(go.Scatter(x=dt, y=df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1, col=1)
     fig.add_trace(go.Scatter(x=dt, y=df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
     fig.add_trace(go.Scatter(x=dt, y=df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
-    fig.update_layout(title_text="Bid Ask and Volumes")
+    fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h")
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
