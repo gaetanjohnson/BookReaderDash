@@ -5,12 +5,10 @@ from plotly.subplots import make_subplots
 
 import dash
 from dash.dependencies import Input, Output
-from utils import load_data
+from utils.data_workflow import load_data
 import plotly.express as px
 
 from app_layout import generate_app_layout
-import time
-from models import BookReader, TopBookReader
 
 # TODO: Handle Data (with SQL database ?)
 # TODO: Choose what and how to display

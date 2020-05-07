@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from models import BookReader
 
-from .settings import DATA_DIR
+from utils import DATA_DIR
 
 
 class TestBookReader(TestCase):
