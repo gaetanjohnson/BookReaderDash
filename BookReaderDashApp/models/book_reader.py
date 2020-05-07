@@ -46,7 +46,6 @@ class BookReader(DataReader):
             "direction": "string",
             "spread": 'float64'
         })
-
         df["nanosEpoch"] = df["datetime"].values.astype("int64")
         df['date'] = df['datetime'].dt.date
         df['hour'] = df['datetime'].dt.hour
@@ -54,7 +53,7 @@ class BookReader(DataReader):
         df['second'] = df['datetime'].dt.second
         df['microsecond'] = df['datetime'].dt.microsecond
         df['time'] = df['datetime'].dt.time
-
+        df['cumulative_trade_volume'] = df.groupby(['nanosEpoch', 'direction'])['tradeSz'].cumsum()
         return df
 
     @classmethod
