@@ -142,6 +142,7 @@ Session.vim
 
 # intelliJ
 .idea/
-BookReaderDashApp/data/data_linenew.txt
-BookReaderDashApp/data/data_topnew.csv
+BookReaderDashApp/data/data_line_new.txt
+BookReaderDashApp/data/data_top_new.csv
 BookReaderDashApp/data/btc_data.csv
+/BookReaderDashApp/data/data_line_new.txt
