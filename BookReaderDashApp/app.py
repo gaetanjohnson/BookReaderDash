@@ -1,5 +1,8 @@
 import re
 from datetime import datetime as dt
+
+from flask_caching import Cache
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -9,7 +12,6 @@ from utils.data_workflow import load_data
 import plotly.express as px
 
 from app_layout import generate_app_layout
-
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
 
@@ -21,7 +23,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # df = BookReader.load("data/data_line_new.data")
 data_files = ['']
 
-df = load_data("data_lines_big.data")
+df = load_data("data_lines_big.data", use_cache=False)
 
 features = [
     {"label": "Bid Size", "value": "bidSz"},
@@ -34,14 +36,20 @@ features = [
 msuks = df['msuk'].unique()
 
 app = dash.Dash(__name__)
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'filesystem',
+    'CACHE_DIR': 'cache-directory'
+})
 
 app.layout = generate_app_layout(msuks, features)
+
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'), Output('bid_ask', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value'),
                Input('feature_selector', 'value')])
+@cache.memoize(timeout=20)
 def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk, feature):
     filtered_df = df.copy()
     if date is not None:
@@ -75,11 +83,11 @@ def generate_figure(df, feature):
 
 
 def generate_bid_ask_figure(df):
-    # fig = go.Figure()
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,  row_heights=[0.7, 0.3])
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02, row_heights=[0.7, 0.3])
     dt = df["datetime"]
     fig.add_trace(go.Scatter(x=dt, y=df["bidPx"], name='Bid', mode='lines', line_color='red'), row=1, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1,
+                  col=1)
     fig.add_trace(go.Scatter(x=dt, y=df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
     fig.add_trace(go.Scatter(x=dt, y=df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
     fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h")
@@ -92,6 +100,7 @@ def generate_bid_ask_figure(df):
     [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
      Input('second_slider', 'value'), Input('micros_slider', 'value'),
      Input('date_picker', 'date')])
+@cache.memoize(timeout=20)
 def generate_output_timeframe(hour_value, minute_value, second_value, micros_value, date):
     is_hour_range = hour_value[0] < hour_value[1]
     is_minute_range = minute_value[0] < minute_value[1]

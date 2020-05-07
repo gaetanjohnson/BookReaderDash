@@ -1,12 +1,13 @@
 import numpy as np
 import csv
 import pandas as pd
-from pathlib import Path
+
+from settings import DATA_DIR
+
 
 # Creates new set of data
 class DataGenerator:
     FIRST_LINE = 'nanosEpoch,time,msuk,source,cbidPx,cbidSz,caskPx,caskSz,bidPx,bidSz,askPx,askSz,tradePx,tradeSz,channelId,seqNum,msgIdx'
-    DATA_DIR = Path(__file__).resolve().parent.joinpath("../data")
 
     @classmethod
     def _save_data(cls, mode, path, data):
@@ -130,7 +131,6 @@ class DataGenerator:
     def _generate_spreads(cls, quantity):
         return np.round(np.random.gamma(0.2, 0.1, size=quantity), 2)
 
-    # TODO: Think of clever ways to generate trades
     @classmethod
     def _generate_trades(cls, quantity):
         return [0] * quantity
@@ -146,7 +146,7 @@ class DataGenerator:
         data = cls._generate_data(quantity, mode, **kwargs)
         extension = '.csv' if mode == 'top' else '.data'
         file_name = 'new_data' + extension
-        path = cls.DATA_DIR / file_name
+        path = DATA_DIR / file_name
         cls._save_data(mode, path, data)
 
     @classmethod
@@ -157,13 +157,5 @@ class DataGenerator:
         data = cls._generate_data_from_file(df, mode, **kwargs)
         extension = '.csv' if mode == 'top' else '.data'
         file_name = 'data_' + mode + 'new' + extension
-        path = cls.DATA_DIR / file_name
+        path = DATA_DIR / file_name
         cls._save_data(mode, path, data)
-
-# quantity = 200
-# mode = 'top'
-# params = {}
-# DataGenerator.create_more_data(quantity, mode, **params)
-file_path = './BitMEX_XBTUSD_RAW.csv'
-mode = 'line'
-DataGenerator.create_more_data_from_file(file_path, mode)

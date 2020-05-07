@@ -1,6 +1,6 @@
 import os
-from pathlib import Path
 
+from settings import CACHE_DIR
 from models import BookReader, TopBookReader
 
 
@@ -13,10 +13,9 @@ def load_data(file, use_cache=False):
     if file_extension not in ['.data', '.csv']:
         raise TypeError('File supported are .csv or .data')
 
-    pkl_path = Path('cache/pickle/' + filename + '.pkl')
-    pickle_exists = pkl_path.exists()
+    pkl_path = CACHE_DIR.joinpath("pickle", filename + ".pkl")
 
-    if use_cache and not pickle_exists:
+    if use_cache and not pkl_path.exists():
         raise RuntimeError(f"File {file} is not in cache.")
 
     if file_extension == '.data':
