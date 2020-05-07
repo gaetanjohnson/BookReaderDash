@@ -98,11 +98,10 @@ class DataGenerator:
             volumes_bid = df['best_bid_vol'].values
             times = df['date'].values
             datetimes = pd.to_datetime(times, unit='ms').values
-
             for i, time in enumerate(times):
                 distance = (prices_bid[i] - trade_prices[i]) / prices_bid[i] if direction[i] == 'Buy' \
                     else (trade_prices[i] - prices_ask[i]) / prices_ask[i]
-                if distance < 0.02:
+                if distance < 0.01:
                     line = f'source Modify CAU19({msuk}) {direction[i]} {volumes_trade[i]}@{trade_prices[i]} (new qty/price) ' \
                            f'lvl=6 new number of orders = 31 src={datetimes[i]} CDT our={datetimes[i]} CDT flags= ' \
                            f'seq={seqNum} bid:{volumes_bid[i]}@{prices_bid[i]} ask:{volumes_ask[i]}@{prices_ask[i]} ' \
