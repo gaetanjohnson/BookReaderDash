@@ -11,8 +11,8 @@ class TestTopBookReader(TestCase):
         """
         A simple exception safety and consistency check.
         """
-        df = TopBookReader.load(DATA_DIR.joinpath("data_book_big.csv"))
+        df = TopBookReader.load(DATA_DIR.joinpath("data_top_big.csv"))
         TopBookReader._validate(df)
 
-        df = TopBookReader.load(DATA_DIR.joinpath("data_book.csv"))
+        df = TopBookReader.load(DATA_DIR.joinpath("data_top.csv"))
         TopBookReader._validate(df)
