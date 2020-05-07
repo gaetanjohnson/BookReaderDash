@@ -10,8 +10,6 @@ import plotly.express as px
 
 from app_layout import generate_app_layout
 
-# TODO: Handle Data (with SQL database ?)
-# TODO: Choose what and how to display
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
 
@@ -74,6 +72,7 @@ def generate_figure(df, feature):
     fig = px.line(df, x="datetime", y=feature)
     fig.update_xaxes(rangeslider_visible=False)
     return fig
+
 
 def generate_bid_ask_figure(df):
     # fig = go.Figure()
