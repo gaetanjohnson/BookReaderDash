@@ -25,7 +25,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # df = TopBookReader.load("data/data_book_big.csv")
 # df = BookReader.load("data/new_data.txt")
 df = TopBookReader.load("data/data_topnew.csv")
-# df = BookReader.load("data/data_linenew.txt")
+# df = BookReader.load("data/data_linenew.data")
 
 features = [
     {"label": "Trade Price", "value": "tradePx"},   # does it make sense to plot trades ?
