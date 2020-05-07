@@ -10,7 +10,6 @@ import dash
 from dash.dependencies import Input, Output
 from utils.data_workflow import load_data
 import plotly.express as px
-
 from app_layout import generate_app_layout
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
@@ -23,7 +22,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 # df = BookReader.load("data/data_line_new.data")
 data_files = ['']
 
-df = load_data("data_lines_big.data", use_cache=False)
+df = load_data("data_linenew.data", use_cache=False)
 
 features = [
     {"label": "Bid Size", "value": "bidSz"},
@@ -44,7 +43,7 @@ cache = Cache(app.server, config={
 app.layout = generate_app_layout(msuks, features)
 
 
-@app.callback([Output('table', 'data'), Output('time_series', 'figure'), Output('bid_ask', 'figure')],
+@app.callback([Output('table', 'data'), Output('time_series', 'figure'), Output('bid_ask', 'figure'), Output('depth', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value'),
@@ -73,7 +72,8 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     df_to_display = filtered_df[columns_to_display].to_dict('records')
     figure = generate_figure(filtered_df, feature)
     bid_ask_fig = generate_bid_ask_figure(filtered_df)
-    return df_to_display, figure, bid_ask_fig
+    depth_fig = generate_depth_figure(filtered_df)
+    return df_to_display, figure, bid_ask_fig, depth_fig
 
 
 def generate_figure(df, feature):
@@ -83,17 +83,28 @@ def generate_figure(df, feature):
 
 
 def generate_bid_ask_figure(df):
+    relevant_df = df.drop_duplicates(subset='datetime')
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02, row_heights=[0.7, 0.3])
-    dt = df["datetime"]
-    fig.add_trace(go.Scatter(x=dt, y=df["bidPx"], name='Bid', mode='lines', line_color='red'), row=1, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1,
+    dt = relevant_df["datetime"]
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='red'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1,
                   col=1)
-    fig.add_trace(go.Scatter(x=dt, y=df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
     fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h")
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
+def generate_depth_figure(df):
+    data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
+    x = df['datetime'].drop_duplicates()
+    y = data.index
+    z = data.values
+    fig = go.Figure(data=go.Contour(z=z, x=x, y=y))
+    bid = df.drop_duplicates('datetime')['bidPx']
+    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='red'))
+    fig.update_layout(title_text="Cumulative volumes per price")
+    return fig
 
 @app.callback(
     Output('output_timeframe', 'children'),
