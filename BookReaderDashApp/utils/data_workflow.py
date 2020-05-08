@@ -15,7 +15,7 @@ def load_data(file, use_cache=False):
 
     pkl_path = CACHE_DIR.joinpath("pickle", filename + ".pkl")
 
-    if use_cache and not pkl_path.exists():
+    if use_cache and not pkl_path.exists(): # Maybe just create the pickle file automatically ?
         raise RuntimeError(f"File {file} is not in cache.")
 
     if file_extension == '.data':

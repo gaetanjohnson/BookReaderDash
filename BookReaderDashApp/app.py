@@ -14,10 +14,8 @@ from app_layout import generate_app_layout
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-
-data_files = ['data_line_btc.data', 'data_lines.data', 'data_lines_big.data',
+data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data', 'data_lines_big.data',
               'data_top_btc_full.csv', 'data_top.csv', 'data_top_big.csv']
 
 # Choose a file from list
