@@ -34,6 +34,7 @@ def generate_app_layout(msuks, features):
                 )],
                 className='row'
             ),
+            # TODO Clean hard coded values below
             html.Div(
                 children=[
                     generate_slider('all_hour', 'hour_slider', 0, 24, 1, [6, 10], 3, 'h'),
