@@ -14,12 +14,12 @@ from app_layout import generate_app_layout
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
 
-
 data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data', 'data_lines_big.data',
               'data_top_btc_full.csv', 'data_top.csv', 'data_top_big.csv']
 
 # Choose a file from list
-file_to_load = data_files[1]
+# btc data is on October 16 2019, given data is August 7 2019
+file_to_load = data_files[0]
 df = load_data(file_to_load, use_cache=False)
 
 features = [
@@ -56,41 +56,42 @@ app.layout = generate_app_layout(msuks, features)
 @cache.memoize(timeout=20)
 def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk, feature):
     filtered_df = df.copy()
+
+    if msuk is not None:
+        filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     if date is not None:
         date = dt.strptime(re.split(r"[T ]", date)[0], '%Y-%m-%d')
         date = dt.date(date)
         filtered_df = filtered_df[(filtered_df.date == date)]
-    if hour_value is not None and hour_value != ranges['hour']:
-        min_hour, max_hour = hour_value
-        filtered_df = filtered_df[(filtered_df.hour <= max_hour) & (filtered_df.hour >= min_hour)]
-    if minute_value is not None and minute_value != ranges['minute']:
-        min_minute, max_minute = minute_value
-        filtered_df = filtered_df[(filtered_df.minute <= max_minute) & (filtered_df.minute >= min_minute)]
-    if second_value is not None and second_value != ranges['second']:
-        min_second, max_second = second_value
-        filtered_df = filtered_df[(filtered_df.second <= max_second) & (filtered_df.second >= min_second)]
-    if micros_value is not None and micros_value != ranges['microsecond']:
-        min_micros, max_micros = micros_value
-        filtered_df = filtered_df[(filtered_df.microsecond <= max_micros) & (filtered_df.microsecond >= min_micros)]
-    if msuk is not None:
-        filtered_df = filtered_df[(filtered_df.msuk == msuk)]
+
+    filtered_df = filter_dataframe(filtered_df, 'hour', hour_value)
+    filtered_df = filter_dataframe(filtered_df, 'minute', minute_value)
+    filtered_df = filter_dataframe(filtered_df, 'second', second_value)
+    filtered_df = filter_dataframe(filtered_df, 'microsecond', micros_value)
+
     df_to_display = filtered_df[columns_to_display].to_dict('records')
-    figure = generate_figure(filtered_df, feature)
+    bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
-    bid_ask_fig = generate_bid_ask_figure(filtered_df)
-
+    figure = generate_figure(bid_ask_df, feature)
+    bid_ask_fig = generate_bid_ask_figure(bid_ask_df)
     depth_fig = generate_depth_figure(filtered_df)
+
     return df_to_display, figure, bid_ask_fig, depth_fig
 
+def filter_dataframe(df, attr, range):
+    if range is not None and range != ranges[attr]:
+        min_value, max_value = range
+        return df[(df[attr] <= max_value) & (df[attr] >= min_value)]
+    else:
+        return df
 
-def generate_figure(df, feature):
-    fig = px.line(df, x="datetime", y=feature)
+def generate_figure(relevant_df, feature):
+    fig = px.line(relevant_df, x="datetime", y=feature)
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
 
-def generate_bid_ask_figure(df):
-    relevant_df = df.drop_duplicates(subset='datetime')
+def generate_bid_ask_figure(relevant_df):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02, row_heights=[0.7, 0.3])
     dt = relevant_df["datetime"]
     fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='red'), row=1, col=1)
