@@ -86,7 +86,7 @@ def filter_dataframe(df, attr, range):
         return df
 
 def generate_figure(relevant_df, feature):
-    fig = px.line(relevant_df, x="datetime", y=feature)
+    fig = px.line(relevant_df, x="datetime", y=feature, template='plotly_white')
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
@@ -99,7 +99,7 @@ def generate_bid_ask_figure(relevant_df):
                   col=1)
     fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
     fig.add_trace(go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
-    fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h")
+    fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h", template='plotly_white')
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
@@ -111,7 +111,7 @@ def generate_depth_figure(df):
     fig = go.Figure(data=go.Contour(z=z, x=x, y=y))
     bid = df.drop_duplicates('datetime')['bidPx']
     fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='red'))
-    fig.update_layout(title_text="Cumulative volumes per price")
+    fig.update_layout(title_text="Cumulative volumes per price", template='plotly_white')
     return fig
 
 @app.callback(
