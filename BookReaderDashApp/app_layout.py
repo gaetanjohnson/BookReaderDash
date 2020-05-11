@@ -60,10 +60,12 @@ def generate_app_layout(msuks, features):
                             ),
                             dcc.Graph(id='time_series'),
                             dcc.Graph(id='bid_ask'),
-                            dcc.Graph(id='depth')
+                            dcc.Graph(id='size_imbalance')
                         ]),
                 dcc.Tab(label='Depth Analysis',
-                        children=['TODO'])
+                        children=[
+                            dcc.Graph(id='depth'),
+                        ])
             ]),
             dash_table.DataTable(
                 id='table',

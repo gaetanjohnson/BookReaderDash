@@ -20,7 +20,7 @@ data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data'
 # Choose a file from list
 # btc data is on October 16 2019, given data is August 7 2019
 file_to_load = data_files[0]
-df = load_data(file_to_load, use_cache=False)
+df = load_data(file_to_load, use_cache=True)
 
 features = [
     {"label": "Bid Size", "value": "bidSz"},
@@ -48,7 +48,8 @@ app.layout = generate_app_layout(msuks, features)
 
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'),
-               Output('bid_ask', 'figure'), Output('depth', 'figure')],
+               Output('bid_ask', 'figure'), Output('depth', 'figure'),
+               Output('size_imbalance', 'figure')],
               [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value'),
@@ -75,8 +76,9 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     figure = generate_figure(bid_ask_df, feature)
     bid_ask_fig = generate_bid_ask_figure(bid_ask_df)
     depth_fig = generate_depth_figure(filtered_df)
+    size_imbalance_fig = generate_size_imbalance_figure(bid_ask_df)
 
-    return df_to_display, figure, bid_ask_fig, depth_fig
+    return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig
 
 def filter_dataframe(df, attr, range):
     if range is not None and range != ranges[attr]:
@@ -94,11 +96,11 @@ def generate_figure(relevant_df, feature):
 def generate_bid_ask_figure(relevant_df):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02, row_heights=[0.7, 0.3])
     dt = relevant_df["datetime"]
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='red'), row=1, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='green'), row=1,
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='green'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='red'), row=1,
                   col=1)
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='red'), row=2, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='green'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='green'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='red'), row=2, col=1)
     fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h", template='plotly_white')
     fig.update_xaxes(rangeslider_visible=False)
     return fig
@@ -109,9 +111,17 @@ def generate_depth_figure(df):
     y = data.index
     z = data.values
     fig = go.Figure(data=go.Contour(z=z, x=x, y=y))
-    bid = df.drop_duplicates('datetime')['bidPx']
-    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='red'))
+    best_df = df.drop_duplicates('datetime')
+    bid, ask = best_df['bidPx'], best_df['askPx']
+    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green'))
+    fig.add_trace(go.Scatter(x=x, y=ask, name='Bid', mode='lines', line_color='red'))
     fig.update_layout(title_text="Cumulative volumes per price", template='plotly_white')
+    return fig
+
+# TODO: generate lines for different levels (not just best)
+# TODO: compute size imbalances when loading data
+def generate_size_imbalance_figure(relevant_df):
+    fig = px.line(relevant_df, x="datetime", y='size_imbalance', template='plotly_white')
     return fig
 
 @app.callback(
