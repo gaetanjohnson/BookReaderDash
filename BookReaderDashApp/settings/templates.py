@@ -12,7 +12,5 @@ HOVER_TEMPLATES = {
         "<extra></extra>",
     'line':
         "Time: %{x}<br>" +
-        "Price: %{y}" +
-        "<extra></extra>",
-
+        "Price: %{y}"
 }
