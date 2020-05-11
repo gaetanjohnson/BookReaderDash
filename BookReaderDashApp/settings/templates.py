@@ -14,3 +14,15 @@ HOVER_TEMPLATES = {
         "Time: %{x}<br>" +
         "Price: %{y}"
 }
+
+EMPTY_TEMPLATE = dict(
+                name="draft watermark",
+                text="Hover on figure for volume details",
+                opacity=0.1,
+                font=dict(color="black", size=50),
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False,
+            )

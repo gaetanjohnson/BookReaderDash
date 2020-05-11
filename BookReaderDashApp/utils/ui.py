@@ -23,7 +23,8 @@ def generate_slider(id_bs, id_rs, min, max, step, value, marks_delta, symbol):
             value=value,
             marks=marks,
             tooltip={'always_visible': False},
-            className='sliderslider'),
+            className='sliderslider',
+            persistence=True),
     ],
         className='row'
     )
