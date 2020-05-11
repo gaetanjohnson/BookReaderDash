@@ -65,8 +65,9 @@ def generate_app_layout(msuks, features):
                         ]),
                 dcc.Tab(label='Depth Analysis',
                         children=[
-                            dcc.Graph(id='depth'),
-                            dcc.Graph(id='depth_detail')
+                            dcc.Graph(id='depth_2'),
+                            dcc.Graph(id='depth_detail'),
+                            dcc.Graph(id='depth')
                         ])
             ]),
             dash_table.DataTable(
