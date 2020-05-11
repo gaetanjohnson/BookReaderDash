@@ -54,6 +54,8 @@ class BookReader(DataReader):
         df['microsecond'] = df['datetime'].dt.microsecond
         df['time'] = df['datetime'].dt.time
         df['cumulative_trade_volume'] = df.groupby(['nanosEpoch', 'direction'])['tradeSz'].cumsum()
+        # TODO: comoute size imbalances for different levels
+        df['size_imbalance'] = df['askSz'] - df['bidSz']
         return df
 
     @classmethod
