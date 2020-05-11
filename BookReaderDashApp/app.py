@@ -11,7 +11,7 @@ from dash.dependencies import Input, Output
 from utils.data_workflow import load_data
 import plotly.express as px
 from app_layout import generate_app_layout
-from settings import HOVER_TEMPLATES
+from settings import HOVER_TEMPLATES, EMPTY_TEMPLATE
 
 columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
 
@@ -128,7 +128,7 @@ def generate_size_imbalance_figure(relevant_df):
 
 @app.callback(
     Output('depth_detail', 'figure'),
-    [Input('depth', 'clickData')])
+    [Input('depth', 'hoverData')])
 def display_click_data(clickData):
     fig = go.Figure()
     if clickData is not None:
@@ -141,7 +141,12 @@ def display_click_data(clickData):
                 go.Bar(name='Ask', x=ask_prices, y=ask_sizes, marker_color='red', hovertemplate=HOVER_TEMPLATES['trade_volume_detail']),
                 go.Bar(name='Bid', x=bid_prices, y=bid_sizes, marker_color='green', hovertemplate=HOVER_TEMPLATES['trade_volume_detail'])
         ])
-        fig.update_layout(title=f'Trade Volumes for: {datetime}')
+        fig.update_layout(title=f'Trade Volumes for: {datetime}', template='plotly_white')
+
+    else:
+        draft_template = go.layout.Template()
+        draft_template.layout.annotations = [EMPTY_TEMPLATE]
+        fig.update_layout(template=draft_template)
     return fig
 
 @app.callback(
@@ -193,7 +198,6 @@ def set_sec_values(button, value):
 def set_micros_values(button, value):
     is_second_range = value[0] < value[1]
     return ([0, 1000000], is_second_range) if (button or is_second_range) else ([597045, 650000], is_second_range)
-
 
 
 if __name__ == '__main__':

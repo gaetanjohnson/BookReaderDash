@@ -30,6 +30,7 @@ def generate_app_layout(msuks, features):
                     max_date_allowed=dt.today(),
                     initial_visible_month=dt(2019, 8, 7),
                     date=str(dt(2019, 8, 7)),
+                    persistence=True,
                     style={'width': '70%'}
                 )],
                 className='row'
