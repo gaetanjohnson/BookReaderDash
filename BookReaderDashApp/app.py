@@ -112,11 +112,11 @@ def generate_depth_figure(df):
     x = df['datetime'].drop_duplicates()
     y = data.index
     z = data.values
-    fig = go.Figure(data=go.Contour(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure']),)
+    fig = go.Figure(data=go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure']))
     best_df = df.drop_duplicates('datetime')
     bid, ask = best_df['bidPx'], best_df['askPx']
-    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green'))
-    fig.add_trace(go.Scatter(x=x, y=ask, name='Bid', mode='lines', line_color='red'))
+    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']))
+    fig.add_trace(go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line']))
     fig.update_layout(title_text="Cumulative volumes per price", template='plotly_white')
     fig.update_xaxes(showspikes=True, spikemode="across")
     return fig
