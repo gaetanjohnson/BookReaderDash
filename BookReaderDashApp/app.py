@@ -22,9 +22,8 @@ data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data'
 
 # Choose a file from list
 # btc data is on October 16 2019, given data is August 7 2019
-file_to_load = data_files[0]
-df = load_data(file_to_load, use_cache=True)
-
+file_to_load = data_files[6]
+df = load_data(file_to_load, use_cache=False)
 features = [
     {"label": "Bid Size", "value": "bidSz"},
     {"label": "Bid Price", "value": "bidPx"},
@@ -134,10 +133,8 @@ def generate_depth_figure_non_cum(df, scale):
     x = df['datetime'].drop_duplicates()
     y = data.index
     z = data.values
-    max_val = np.nanmax(z)
-    colorscale, colorbar = generate_colors(max_val, scale)
-    fig = go.Figure(data=go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure'],
-                                    colorscale=colorscale, colorbar=colorbar))
+    colorscale = generate_colors(scale)
+    fig = go.Figure(data=go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure'],colorscale=colorscale))
     best_df = df.drop_duplicates('datetime')
     bid, ask = best_df['bidPx'], best_df['askPx']
     fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']))
