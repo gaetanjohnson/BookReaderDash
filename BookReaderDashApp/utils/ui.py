@@ -32,7 +32,7 @@ def generate_slider(id_bs, id_rs, min, max, step, value, marks_delta, symbol):
 
     return slider
 
-def generate_colors(max, scale):
+def generate_colors(scale):
     colorscale= [
         [0, '#f0f921'],
         [1./(scale**8), '#fdca26'],
@@ -44,9 +44,4 @@ def generate_colors(max, scale):
         [1./(scale**1), '#46039f'],
         [1., '#0d0887'],
     ]
-    colorbar= dict(
-        tick0= 0,
-        tickmode= 'array',
-        tickvals= [round(max/(2**i), -5) for i in range(5)]
-    )
-    return colorscale, colorbar
+    return colorscale
