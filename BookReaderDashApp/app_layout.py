@@ -10,6 +10,7 @@ from utils import generate_slider
 def generate_app_layout(msuks, features):
     app_layout = html.Div([
         html.Div([
+            html.Div(id='filtered_df', style={'display': 'none'}),
             html.Div(
                 html.H3('Book Reader'),
                 className='title',
@@ -65,7 +66,12 @@ def generate_app_layout(msuks, features):
                         ]),
                 dcc.Tab(label='Depth Analysis',
                         children=[
-                            dcc.Graph(id='depth_2'),
+                            html.Div(children=[
+                                dcc.Graph(id='depth_2', className='depthgraph'),
+                                dcc.Slider(id='color_scale', min=1.5, max=10, step=0.5, value=2, vertical=True,
+                                           className='colorslider', verticalHeight=200, marks={1.5: 'Linear', 10: 'Log'}),
+                            ],
+                            className='row rowgraph'),
                             dcc.Graph(id='depth_detail'),
                             dcc.Graph(id='depth')
                         ])
