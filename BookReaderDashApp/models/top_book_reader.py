@@ -4,12 +4,20 @@ from .base import DataReader
 
 
 class TopBookReader(DataReader):
-    size_to_unit = {10: 's', 13: 'ms', 16: 'us', 19: 'ns'}
+    _size_to_unit = {10: 's', 13: 'ms', 16: 'us', 19: 'ns'}
+    _required_entries = ['nanosEpoch', 'time', 'msuk', 'source', 'cbidPx', 'cbidSz', 'caskPx', 'caskSz',
+                         'bidPx', 'bidSz', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'channelId', 'seqNum', 'msgIdx']
 
     @classmethod
     def load(cls, path):
         df = pd.read_csv(path)
+        cls._check_file(df.columns)
         return cls.standardize_df(df)
+
+    @classmethod
+    def _check_file(cls, columns):
+        if any(c not in columns for c in TopBookReader._required_entries):
+            raise RuntimeError(f"Non conforming. File is missing required columns (one of {TopBookReader._required_entries}).")
 
     @classmethod
     def standardize_df(cls, df, inplace=False):
@@ -18,7 +26,7 @@ class TopBookReader(DataReader):
             df = df.copy()
 
         # We have to manually determine the unit of the timestamp, because it is not done properly by pandas
-        unit = cls.size_to_unit[len(str(df["nanosEpoch"][0]))]
+        unit = cls._size_to_unit[len(str(df["nanosEpoch"][0]))]
 
         df.drop(columns=["channelId"], inplace=True)
         df["datetime"] = pd.to_datetime(df["nanosEpoch"], unit=unit)
