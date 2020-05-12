@@ -529,3 +529,14 @@ hr {
     margin-top: 20px;
     padding: 20px;
 }
+.rowgraph{
+  align-items: center;
+}
+.depthgraph{
+  width: 95%;
+}
+.colorslider{
+  width: 5%;
+  margin-right: 0;
+   align-items: center;
+}
