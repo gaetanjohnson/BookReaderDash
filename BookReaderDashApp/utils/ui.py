@@ -23,10 +23,30 @@ def generate_slider(id_bs, id_rs, min, max, step, value, marks_delta, symbol):
             value=value,
             marks=marks,
             tooltip={'always_visible': False},
-            className='sliderslider'),
+            className='sliderslider',
+            persistence=True),
     ],
         className='row'
     )
 
 
     return slider
+
+def generate_colors(max, scale):
+    colorscale= [
+        [0, '#f0f921'],
+        [1./(scale**8), '#fdca26'],
+        [1./(scale**7), '#fb9f3a'],
+        [1./(scale**6), '#ed7953'],
+        [1./(scale**5), '#d8576b'],
+        [1./(scale**3), '#9c179e'],
+        [1./(scale**2), '#7201a8'],
+        [1./(scale**1), '#46039f'],
+        [1., '#0d0887'],
+    ]
+    colorbar= dict(
+        tick0= 0,
+        tickmode= 'array',
+        tickvals= [round(max/(2**i), -5) for i in range(5)]
+    )
+    return colorscale, colorbar

@@ -10,6 +10,7 @@ from utils import generate_slider
 def generate_app_layout(msuks, features):
     app_layout = html.Div([
         html.Div([
+            html.Div(id='filtered_df', style={'display': 'none'}),
             html.Div(
                 html.H3('Book Reader'),
                 className='title',
@@ -30,6 +31,7 @@ def generate_app_layout(msuks, features):
                     max_date_allowed=dt.today(),
                     initial_visible_month=dt(2019, 8, 7),
                     date=str(dt(2019, 8, 7)),
+                    persistence=True,
                     style={'width': '70%'}
                 )],
                 className='row'
@@ -60,10 +62,19 @@ def generate_app_layout(msuks, features):
                             ),
                             dcc.Graph(id='time_series'),
                             dcc.Graph(id='bid_ask'),
-                            dcc.Graph(id='depth')
+                            dcc.Graph(id='size_imbalance')
                         ]),
                 dcc.Tab(label='Depth Analysis',
-                        children=['TODO'])
+                        children=[
+                            html.Div(children=[
+                                dcc.Graph(id='depth_2', className='depthgraph'),
+                                dcc.Slider(id='color_scale', min=1.5, max=10, step=0.5, value=2, vertical=True,
+                                           className='colorslider', verticalHeight=200, marks={1.5: 'Linear', 10: 'Log'}),
+                            ],
+                            className='row rowgraph'),
+                            dcc.Graph(id='depth_detail'),
+                            dcc.Graph(id='depth')
+                        ])
             ]),
             dash_table.DataTable(
                 id='table',

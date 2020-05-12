@@ -33,6 +33,8 @@ class TopBookReader(DataReader):
         df["direction"] = ""
 
         df["spread"] = df["askPx"] - df["bidPx"]
-
+        # TODO: find a better way
+        df['cumulative_trade_volume'] = df['askSz']
+        df['size_imbalance'] = df['askSz'] - df['bidSz']
         if not inplace:
             return df
