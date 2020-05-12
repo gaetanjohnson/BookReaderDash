@@ -5,7 +5,6 @@ from flask_caching import Cache
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
 import pandas as pd
 import dash
 from dash.dependencies import Input, Output
@@ -83,12 +82,14 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
 
     return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, depth_fig_2_json
 
+
 def filter_dataframe(df, attr, range):
     if range is not None and range != ranges[attr]:
         min_value, max_value = range
         return df[(df[attr] <= max_value) & (df[attr] >= min_value)]
     else:
         return df
+
 
 def generate_figure(relevant_df, feature):
     fig = px.line(relevant_df, x="datetime", y=feature, template='plotly_white')
@@ -97,15 +98,19 @@ def generate_figure(relevant_df, feature):
 
 
 def generate_bid_ask_figure(relevant_df):
-    fig = make_subplots(rows=2, cols=1,shared_xaxes=True, vertical_spacing=0.02, row_heights=[0.7, 0.3])
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02, row_heights=[0.7, 0.3])
     dt = relevant_df["datetime"]
     fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='green'
                              ), row=1, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='red'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='red'),
+                  row=1, col=1)
 
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='green'), row=2, col=1)
-    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='red'), row=2, col=1)
-    fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h", template='plotly_white', hovermode='x unified')
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='green'), row=2,
+                  col=1)
+    fig.add_trace(go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='red'), row=2,
+                  col=1)
+    fig.update_layout(title_text="Bid Ask and Volumes", legend_orientation="h", template='plotly_white',
+                      hovermode='x unified')
     fig.update_xaxes(rangeslider_visible=False)
     return fig
 
@@ -118,8 +123,10 @@ def generate_depth_cum_figure(df):
     fig = go.Figure(data=go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure']))
     best_df = df.drop_duplicates('datetime')
     bid, ask = best_df['bidPx'], best_df['askPx']
-    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']))
-    fig.add_trace(go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line']))
+    fig.add_trace(
+        go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']))
+    fig.add_trace(
+        go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line']))
     fig.update_layout(title_text="Cumulative volumes per price", template='plotly_white')
     fig.update_xaxes(showspikes=True, spikemode="across")
     return fig
@@ -134,20 +141,25 @@ def generate_depth_figure_non_cum(df, scale):
     y = data.index
     z = data.values
     colorscale = generate_colors(scale)
-    fig = go.Figure(data=go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure'],colorscale=colorscale))
+    fig = go.Figure(
+        data=go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale=colorscale))
     best_df = df.drop_duplicates('datetime')
     bid, ask = best_df['bidPx'], best_df['askPx']
-    fig.add_trace(go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']))
-    fig.add_trace(go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line']))
+    fig.add_trace(
+        go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']))
+    fig.add_trace(
+        go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line']))
     fig.update_layout(title_text="Volumes per price", template='plotly_white')
     fig.update_xaxes(showspikes=True, spikemode="across")
 
     return fig
 
+
 # TODO: generate lines for different levels (not just best)
 def generate_size_imbalance_figure(relevant_df):
     fig = px.line(relevant_df, x="datetime", y='size_imbalance', template='plotly_white')
     return fig
+
 
 @app.callback(
     Output('depth_detail', 'figure'),
@@ -162,16 +174,19 @@ def display_click_data(clickData_2, clickData):
     else:
         datetime = ctx.triggered[0]['value']['points'][0].get('x', None)
         filtered_df = df[df['datetime'] == datetime][['direction', 'tradeSz', 'tradePx']]
-        ask, bid = filtered_df[filtered_df['direction']=='Sell'], filtered_df[filtered_df['direction']=='Buy']
+        ask, bid = filtered_df[filtered_df['direction'] == 'Sell'], filtered_df[filtered_df['direction'] == 'Buy']
         ask_prices, ask_sizes = ask['tradePx'], ask['tradeSz']
         bid_prices, bid_sizes = bid['tradePx'], bid['tradeSz']
         fig = go.Figure(data=[
-                go.Bar(name='Ask', x=ask_prices, y=ask_sizes, marker_color='red', hovertemplate=HOVER_TEMPLATES['trade_volume_detail']),
-                go.Bar(name='Bid', x=bid_prices, y=bid_sizes, marker_color='green', hovertemplate=HOVER_TEMPLATES['trade_volume_detail'])
+            go.Bar(name='Ask', x=ask_prices, y=ask_sizes, marker_color='red',
+                   hovertemplate=HOVER_TEMPLATES['trade_volume_detail']),
+            go.Bar(name='Bid', x=bid_prices, y=bid_sizes, marker_color='green',
+                   hovertemplate=HOVER_TEMPLATES['trade_volume_detail'])
         ])
         fig.update_layout(title=f'Trade Volumes for: {datetime}', template='plotly_white')
 
     return fig
+
 
 @app.callback(
     Output('output_timeframe', 'children'),

@@ -37,7 +37,6 @@ class TestDataWorkflow(TestCase):
         for file_path in DATA_TOP + DATA_LINE:
             df = load_data(file_path, use_cache=False)
 
-
     def test_data_workflow_cache(self):
         """
         Try to load files with cache
