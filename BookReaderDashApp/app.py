@@ -95,6 +95,16 @@ def generate_depth_figure_non_cum(df, scale):
     return fig
 
 
+
+@app.callback(Output('depth_2', 'figure'),
+              [Input('filtered_df', 'children'), Input('color_scale', 'value')])
+def generate_depth_figure_non_cum(df, scale):
+    df = pd.read_json(df, orient='split')
+    fig = FigureGenerator.depth_non_cum_figure(df, scale)
+
+    return fig
+
+>>>>>>> fbd982ea7aa4872ffa01cf5409fffb98db2bddef
 @app.callback(
     Output('depth_detail', 'figure'),
     [Input('depth_2', 'clickData'), Input('depth', 'clickData')])
@@ -102,6 +112,7 @@ def display_click_data(clickData_2, clickData):
     ctx = dash.callback_context
     fig = FigureGenerator.trade_volume_detail(ctx, df)
     return fig
+
 
 
 @app.callback(
