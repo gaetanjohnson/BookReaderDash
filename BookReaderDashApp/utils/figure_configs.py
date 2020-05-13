@@ -50,7 +50,8 @@ class FigureGenerator:
     def size_imbalance_figure(cls, relevant_df):
         traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df['size_imbalance'], mode='lines',
                             name='size_imbalance')
-        return [traces], dict(), dict()
+        layout = dict(title_text="Size Imbalance on best Bid/Ask", )
+        return [traces], layout, dict()
 
     @classmethod
     @figure_generator
