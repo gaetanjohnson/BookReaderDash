@@ -2,10 +2,8 @@ from datetime import datetime as dt
 
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table
 
-from utils import generate_slider
-
+from utils import generate_slider, generate_datatable
 
 def generate_app_layout(features, files):
     app_layout = html.Div([
@@ -75,50 +73,15 @@ def generate_app_layout(features, files):
                         children=[
                             html.Div(children=[
                                 dcc.Graph(id='depth_2', className='depthgraph'),
-                                dcc.Slider(id='color_scale', min=1.5, max=10, step=0.5, value=2, vertical=True,
-                                           className='colorslider', verticalHeight=200, marks={1.5: 'Linear', 10: 'Log'}),
+                                dcc.Slider(id='color_scale', min=1, max=10, step=0.5, value=2, vertical=True,
+                                           className='colorslider', verticalHeight=200, marks={1: 'Linear', 10: 'Log'}),
                             ],
                             className='row rowgraph'),
                             dcc.Graph(id='depth_detail'),
                             dcc.Graph(id='depth')
                         ])
             ]),
-            dash_table.DataTable(
-                id='table',
-                columns=[{'name': ['DateTime', 'Date'], 'id': 'date'},
-                         {'name': ['DateTime', 'Time'], 'id': 'time'},
-                         {'name': ['Bid', 'Volume'], 'id': 'bidSz'},
-                         {'name': ['Bid', 'Price'], 'id': 'bidPx'},
-                         {'name': ['Ask', 'Price'], 'id': 'askPx'},
-                         {'name': ['Ask', 'Volume'], 'id': 'askSz'},
-                         {'name': ['Trade', 'Price'], 'id': 'tradePx'},
-                         {'name': ['Trade', 'Volume'], 'id': 'tradeSz'},
-                         {'name': ['Trade', 'Direction'], 'id': 'direction'}],
-                # TODO CLean the style below
-                style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': 'rgb(248, 248, 248)'
-                    }] + [
-                    {
-                        'if': {'column_id': c},
-                        'borderLeft': '1px solid #506783'
-                    } for c in ['date', 'bidSz', 'tradePx']] + [
-                    {
-                    'if': {'column_id': 'direction'},
-                    'borderRight': '1px solid #506783'}
-                ],
-
-                style_cell={
-                        'textAlign': 'center'
-                    },
-                style_header={
-                    'backgroundColor': 'rgb(230, 230, 230)',
-                    'fontWeight': 'bold',
-                    'border': '1px solid #506783'
-                },
-                merge_duplicate_headers=True
-            ),
+            generate_datatable('table'),
             ],
         className='eight columns')
     ],

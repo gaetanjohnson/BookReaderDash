@@ -7,9 +7,9 @@ import dash
 from dash.dependencies import Input, Output
 from utils.data_workflow import load_data as load_data_workflow
 from app_layout import generate_app_layout
-from utils.figure_configs import FigureGenerator
-from utils.settings import FEATURES, TIME_RANGES, COLUMNS_FOR_DATA_TABLE
-from settings.settings import DATA_FILES
+from utils import FigureGenerator
+from utils import FEATURES, TIME_RANGES, COLUMNS_FOR_DATA_TABLE
+from settings import DATA_FILES
 
 
 # btc data is on October 16 2019, given data is August 7 2019
