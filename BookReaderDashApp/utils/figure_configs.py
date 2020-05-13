@@ -7,16 +7,19 @@ import functools
 import time
 import json
 
+
 def timer(func):
     """Print the runtime of the decorated function"""
+
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
-        start_time = time.perf_counter()    # 1
+        start_time = time.perf_counter()  # 1
         value = func(*args, **kwargs)
-        end_time = time.perf_counter()      # 2
-        run_time = end_time - start_time    # 3
+        end_time = time.perf_counter()  # 2
+        run_time = end_time - start_time  # 3
         print(f"Finished {func.__name__!r} in {run_time:.4f} secs")
         return value
+
     return wrapper_timer
 
 
@@ -26,14 +29,15 @@ def figure_generator(func):
         fig = go.Figure()
         traces, layout, x_axes = func(*args, **kwargs)
         fig.add_traces(traces)
-        template=layout.pop('template', 'plotly_white')
+        template = layout.pop('template', 'plotly_white')
         fig.update_layout(template=template, **layout)
         fig.update_xaxes(rangeslider_visible=False, **x_axes)
         return fig
+
     return wrapper_decorator
 
 
-class FigureGenerator():
+class FigureGenerator:
 
     @classmethod
     @figure_generator
@@ -45,7 +49,8 @@ class FigureGenerator():
     @classmethod
     @figure_generator
     def size_imbalance_figure(cls, relevant_df):
-        traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df['size_imbalance'], mode='lines', name='size_imbalance')
+        traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df['size_imbalance'], mode='lines',
+                            name='size_imbalance')
         return [traces], dict(), dict()
 
     @classmethod
@@ -54,7 +59,8 @@ class FigureGenerator():
         dt = relevant_df["datetime"]
         traces = [
             go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='green'),
-            go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='red', yaxis='y'),
+            go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='red',
+                       yaxis='y'),
             go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='green', yaxis='y2'),
             go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='red', yaxis='y2'),
         ]
@@ -87,7 +93,7 @@ class FigureGenerator():
     @classmethod
     @figure_generator
     def depth_non_cum_figure(cls, df, scale):
-        data = df[['datetime', 'tradeSz', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
+        data = df[['datetime', 'tradeSz', 'tradePx']].set_index(['tradePx', 'datetime'], append=True).unstack()
         x = df['datetime'].drop_duplicates()
         y = data.index
         z = data.values
@@ -123,8 +129,10 @@ class FigureGenerator():
             bid_prices, bid_sizes = bid['tradePx'], bid['tradeSz']
 
             traces = [
-                go.Bar(name='Ask', x=ask_prices, y=ask_sizes, marker_color='red', hovertemplate=HOVER_TEMPLATES['trade_volume_detail']),
-                go.Bar(name='Bid', x=bid_prices, y=bid_sizes, marker_color='green', hovertemplate=HOVER_TEMPLATES['trade_volume_detail'])
+                go.Bar(name='Ask', x=ask_prices, y=ask_sizes, marker_color='red',
+                       hovertemplate=HOVER_TEMPLATES['trade_volume_detail']),
+                go.Bar(name='Bid', x=bid_prices, y=bid_sizes, marker_color='green',
+                       hovertemplate=HOVER_TEMPLATES['trade_volume_detail'])
             ]
 
             layout = dict(title=f'Trade Volumes for: {datetime}')

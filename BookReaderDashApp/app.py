@@ -17,7 +17,7 @@ data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data'
 
 # Choose a file from list
 # btc data is on October 16 2019, given data is August 7 2019
-file_to_load = data_files[0]
+file_to_load = data_files[6]
 df = load_data(file_to_load, use_cache=True)
 features = [
     {"label": "Bid Size", "value": "bidSz"},
@@ -77,6 +77,7 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
 
     return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, depth_fig_2_json
 
+
 def filter_dataframe(df, attr, range):
     if range is not None and range != ranges[attr]:
         min_value, max_value = range
@@ -84,12 +85,12 @@ def filter_dataframe(df, attr, range):
     else:
         return df
 
+
 @app.callback(Output('depth_2', 'figure'),
               [Input('filtered_df', 'children'), Input('color_scale', 'value')])
 def generate_depth_figure_non_cum(df, scale):
     df = pd.read_json(df, orient='split')
     fig = FigureGenerator.depth_non_cum_figure(df, scale)
-
     return fig
 
 @app.callback(
