@@ -41,7 +41,7 @@ cache = Cache(app.server, config={
     'CACHE_DIR': 'cache-directory'
 })
 
-app.layout = generate_app_layout(msuks, features)
+app.layout = generate_app_layout(msuks, features, data_files)
 
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'),
@@ -66,7 +66,6 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     filtered_df = filter_dataframe(filtered_df, 'minute', minute_value)
     filtered_df = filter_dataframe(filtered_df, 'second', second_value)
     filtered_df = filter_dataframe(filtered_df, 'microsecond', micros_value)
-
     df_to_display = filtered_df[columns_to_display].to_dict('records')
     bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
@@ -95,9 +94,10 @@ def generate_depth_figure_non_cum(df, scale):
 
 @app.callback(
     Output('depth_detail', 'figure'),
-    [Input('depth_2', 'clickData'), Input('depth', 'clickData')])
-def display_click_data(clickData_2, clickData):
+    [Input('depth_2', 'clickData'), Input('depth', 'clickData'), Input('filtered_df', 'children')])
+def display_click_data(clickData_2, clickData, df):
     ctx = dash.callback_context
+    df = pd.read_json(df, orient='split')
     fig = FigureGenerator.trade_volume_detail(ctx, df)
     return fig
 

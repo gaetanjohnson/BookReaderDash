@@ -5,6 +5,7 @@ from settings import HOVER_TEMPLATES, EMPTY_TEMPLATE
 from utils import generate_colors
 import functools
 import time
+import json
 
 def timer(func):
     """Print the runtime of the decorated function"""
@@ -30,6 +31,7 @@ def figure_generator(func):
         fig.update_xaxes(rangeslider_visible=False, **x_axes)
         return fig
     return wrapper_decorator
+
 
 class FigureGenerator():
 
@@ -111,7 +113,10 @@ class FigureGenerator():
             draft_template.layout.annotations = [EMPTY_TEMPLATE]
             return [], dict(template=draft_template), dict()
         else:
-            datetime = ctx.triggered[0]['value']['points'][0].get('x', None)
+            obj = json.loads(ctx.triggered[0]['value'])
+            if not obj.get('points'):
+                return [], dict(), dict()
+            datetime = obj['points'][0].get('x', None)
             filtered_df = df[df['datetime'] == datetime][['direction', 'tradeSz', 'tradePx']]
             ask, bid = filtered_df[filtered_df['direction'] == 'Sell'], filtered_df[filtered_df['direction'] == 'Buy']
             ask_prices, ask_sizes = ask['tradePx'], ask['tradeSz']
