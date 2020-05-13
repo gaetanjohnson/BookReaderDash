@@ -22,9 +22,10 @@ cache = Cache(app.server, config={
 
 app.layout = generate_app_layout(FEATURES, DATA_FILES)
 
+
 """
 The three next functions handle loading the data from disk, but only when a different file is selected.
-Data is cached and rapidly accessible to other callbacks
+Data is cached and rapidly accessible to other callbacks 
 """
 
 
@@ -48,6 +49,11 @@ def load_data_from_file_selector(file_path):
 def get_data_from_cache(file_path):
     data = global_store(file_path)[0]
     return data
+
+
+"""
+Next callback filters the dataframe for selected timeframe, generates appropriate figures and stores filtered_dataframe
+"""
 
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'),
@@ -79,17 +85,22 @@ def update_figure(file_path, hour_value, minute_value, second_value, micros_valu
     bid_ask_fig = FigureGenerator.bid_ask_figure(bid_ask_df)
     depth_fig = FigureGenerator.depth_cum_figure(filtered_df)
     size_imbalance_fig = FigureGenerator.size_imbalance_figure(bid_ask_df)
-    depth_fig_2_json = filtered_df.to_json(date_format='iso', orient='split')
+    filtered_df_json = filtered_df.to_json(date_format='iso', orient='split')
 
-    return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, depth_fig_2_json
+    return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, filtered_df_json
 
 
-def filter_dataframe(df, attr, range):
-    if range is not None and range != TIME_RANGES[attr]:
-        min_value, max_value = range
+def filter_dataframe(df, attr, timerange):
+    if timerange is not None and timerange != TIME_RANGES[attr]:
+        min_value, max_value = timerange
         return df[(df[attr] <= max_value) & (df[attr] >= min_value)]
     else:
         return df
+
+
+"""
+Generates the depth figure from filtered df json. It is separate from the above for quick load on color scale change
+"""
 
 
 @app.callback(Output('depth_2', 'figure'),
@@ -100,10 +111,15 @@ def generate_depth_figure_non_cum(df, scale):
     return fig
 
 
+"""
+Generates trade_volume_details figure on clicking the depth figures
+"""
+
+
 @app.callback(
     Output('depth_detail', 'figure'),
     [Input('depth_2', 'clickData'), Input('depth', 'clickData'), Input('signal_data_ready', 'children')])
-def display_click_data(clickData_2, clickData, file_path):
+def display_click_data(click_data_2, click_data, file_path):
     ctx = dash.callback_context
     filtered_df = get_data_from_cache(file_path)
     fig = FigureGenerator.trade_volume_detail(ctx, filtered_df)
