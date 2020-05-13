@@ -13,10 +13,10 @@ def load_data(file, use_cache=False):
     if file_extension not in ['.data', '.csv']:
         raise TypeError('File supported are .csv or .data')
 
-    pkl_path = CACHE_DIR.joinpath("pickle", filename + ".pkl")
+    # cache now is in gitignore, this creates the directory if it doesn't exist
+    CACHE_DIR.mkdir(parents=False, exist_ok=True)
 
-    # if use_cache and not pkl_path.exists(): # Maybe just create the pickle file automatically ?
-    #     raise RuntimeError(f"File {file} is not in cache.")
+    pkl_path = CACHE_DIR.joinpath(filename + ".pkl")
 
     if file_extension == '.data':
         reader = BookReader

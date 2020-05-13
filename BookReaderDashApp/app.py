@@ -92,15 +92,6 @@ def filter_dataframe(df, attr, range):
 def generate_depth_figure_non_cum(df, scale):
     df = pd.read_json(df, orient='split')
     fig = FigureGenerator.depth_non_cum_figure(df, scale)
-    return fig
-
-
-
-@app.callback(Output('depth_2', 'figure'),
-              [Input('filtered_df', 'children'), Input('color_scale', 'value')])
-def generate_depth_figure_non_cum(df, scale):
-    df = pd.read_json(df, orient='split')
-    fig = FigureGenerator.depth_non_cum_figure(df, scale)
 
     return fig
 
