@@ -17,7 +17,7 @@ data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data'
 
 # Choose a file from list
 # btc data is on October 16 2019, given data is August 7 2019
-file_to_load = data_files[0]
+file_to_load = data_files[6]
 df = load_data(file_to_load, use_cache=True)
 features = [
     {"label": "Bid Size", "value": "bidSz"},
