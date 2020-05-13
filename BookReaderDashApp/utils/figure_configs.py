@@ -1,11 +1,9 @@
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
+
 from settings import HOVER_TEMPLATES, EMPTY_TEMPLATE
 from utils import generate_colors
 import functools
 import time
-import json
 
 
 def timer(func):
@@ -24,6 +22,7 @@ def timer(func):
 
 
 def figure_generator(func):
+    """Generates a figure from traces, layout and xaxis layout"""
     @functools.wraps(func)
     def wrapper_decorator(*args, **kwargs):
         fig = go.Figure()
@@ -93,7 +92,11 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def depth_non_cum_figure(cls, df, scale):
-        data = df[['datetime', 'tradeSz', 'tradePx']].set_index(['tradePx', 'datetime'], append=True).unstack()
+        try:
+            data = df[['datetime', 'tradeSz', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
+        # TODO: show different layout when data is just top of the book. For now, just return empty Figures
+        except:
+            return [], dict(), dict()
         x = df['datetime'].drop_duplicates()
         y = data.index
         z = data.values
@@ -114,15 +117,12 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def trade_volume_detail(cls, ctx, df):
-        if not ctx.triggered:
+        datetime = handle_ctx(ctx.triggered)
+        if not datetime:
             draft_template = go.layout.Template()
             draft_template.layout.annotations = [EMPTY_TEMPLATE]
             return [], dict(template=draft_template), dict()
         else:
-            obj = json.loads(ctx.triggered[0]['value'])
-            if not obj.get('points'):
-                return [], dict(), dict()
-            datetime = obj['points'][0].get('x', None)
             filtered_df = df[df['datetime'] == datetime][['direction', 'tradeSz', 'tradePx']]
             ask, bid = filtered_df[filtered_df['direction'] == 'Sell'], filtered_df[filtered_df['direction'] == 'Buy']
             ask_prices, ask_sizes = ask['tradePx'], ask['tradeSz']
@@ -138,3 +138,14 @@ class FigureGenerator:
             layout = dict(title=f'Trade Volumes for: {datetime}')
 
             return traces, layout, dict()
+
+def handle_ctx(ctx):
+    if ctx == None:
+        return None
+    else:
+        triggered_value = ctx[0]['value']
+        if type(triggered_value) == str:
+            return None
+        else:
+            datetime = triggered_value['points'][0].get('x', None)
+            return datetime

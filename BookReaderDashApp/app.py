@@ -5,35 +5,14 @@ from flask_caching import Cache
 import pandas as pd
 import dash
 from dash.dependencies import Input, Output
-from utils.data_workflow import load_data
+from utils.data_workflow import load_data as load_data_workflow
 from app_layout import generate_app_layout
 from utils.figure_configs import FigureGenerator
+from utils.settings import FEATURES, TIME_RANGES, COLUMNS_FOR_DATA_TABLE
+from settings.settings import DATA_FILES
 
 
-columns_to_display = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
-
-data_files = ['data_line_btc_full.data', 'data_line_btc.data', 'data_lines.data', 'data_lines_big.data',
-              'data_top_btc_full.csv', 'data_top.csv', 'data_top_big.csv']
-
-# Choose a file from list
 # btc data is on October 16 2019, given data is August 7 2019
-file_to_load = data_files[6]
-df = load_data(file_to_load, use_cache=True)
-features = [
-    {"label": "Bid Size", "value": "bidSz"},
-    {"label": "Bid Price", "value": "bidPx"},
-    {"label": "Ask Size", "value": "askSz"},
-    {"label": "Ask Price", "value": "askPx"},
-    {"label": "Spread", "value": "spread"},
-]
-
-ranges = {
-    'hour': [0, 24],
-    'minute': [0, 60],
-    'second': [0, 60],
-    'microsecond': [0, 1000000]
-}
-msuks = df['msuk'].unique()
 
 app = dash.Dash(__name__)
 cache = Cache(app.server, config={
@@ -41,20 +20,47 @@ cache = Cache(app.server, config={
     'CACHE_DIR': 'cache-directory'
 })
 
-app.layout = generate_app_layout(msuks, features, data_files)
+app.layout = generate_app_layout(FEATURES, DATA_FILES)
+
+"""
+The three next functions handle loading the data from disk, but only when a different file is selected.
+Data is cached and rapidly accessible to other callbacks
+"""
+
+
+@cache.memoize()
+def global_store(file_path):
+    print(f'Loading data from {file_path}')
+    df = load_data_workflow(file_path, use_cache=True)
+    msuks = df['msuk'].unique()
+    options = [{'label': msuk, 'value': msuk} for msuk in msuks]
+    print('Data Loaded')
+    return df, options
+
+
+@app.callback([Output('signal_data_ready', 'children'), Output('msuk_selector', 'options')],
+              [Input('file', 'value')])
+def load_data_from_file_selector(file_path):
+    msuks_options = global_store(file_path)[1]
+    return file_path, msuks_options
+
+
+def get_data_from_cache(file_path):
+    data = global_store(file_path)[0]
+    return data
 
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'),
                Output('bid_ask', 'figure'), Output('depth', 'figure'),
                Output('size_imbalance', 'figure'), Output('filtered_df', 'children')],
-              [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+              [Input('signal_data_ready', 'children'), Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value'),
                Input('date_picker', 'date'), Input('msuk_selector', 'value'),
                Input('feature_selector', 'value')])
 @cache.memoize(timeout=20)
-def update_figure(hour_value, minute_value, second_value, micros_value, date, msuk, feature):
-    filtered_df = df.copy()
-
+def update_figure(file_path, hour_value, minute_value, second_value, micros_value, date, msuk, feature):
+    # filtered_df = df.copy()
+    filtered_df = get_data_from_cache(file_path)
     if msuk is not None:
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
     if date is not None:
@@ -66,7 +72,7 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
     filtered_df = filter_dataframe(filtered_df, 'minute', minute_value)
     filtered_df = filter_dataframe(filtered_df, 'second', second_value)
     filtered_df = filter_dataframe(filtered_df, 'microsecond', micros_value)
-    df_to_display = filtered_df[columns_to_display].to_dict('records')
+    df_to_display = filtered_df[COLUMNS_FOR_DATA_TABLE].to_dict('records')
     bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
     figure = FigureGenerator.figure(bid_ask_df, feature)
@@ -79,7 +85,7 @@ def update_figure(hour_value, minute_value, second_value, micros_value, date, ms
 
 
 def filter_dataframe(df, attr, range):
-    if range is not None and range != ranges[attr]:
+    if range is not None and range != TIME_RANGES[attr]:
         min_value, max_value = range
         return df[(df[attr] <= max_value) & (df[attr] >= min_value)]
     else:
@@ -93,15 +99,20 @@ def generate_depth_figure_non_cum(df, scale):
     fig = FigureGenerator.depth_non_cum_figure(df, scale)
     return fig
 
+
 @app.callback(
     Output('depth_detail', 'figure'),
-    [Input('depth_2', 'clickData'), Input('depth', 'clickData'), Input('filtered_df', 'children')])
-def display_click_data(clickData_2, clickData, df):
+    [Input('depth_2', 'clickData'), Input('depth', 'clickData'), Input('signal_data_ready', 'children')])
+def display_click_data(clickData_2, clickData, file_path):
     ctx = dash.callback_context
-    df = pd.read_json(df, orient='split')
-    fig = FigureGenerator.trade_volume_detail(ctx, df)
+    filtered_df = get_data_from_cache(file_path)
+    fig = FigureGenerator.trade_volume_detail(ctx, filtered_df)
     return fig
 
+
+"""
+Callback to display selected timeframe
+"""
 
 
 @app.callback(
@@ -119,9 +130,16 @@ def generate_output_timeframe(hour_value, minute_value, second_value, micros_val
     elif is_minute_range:
         return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}-{minute_value[1]}min'
     elif is_second_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}-{second_value[1]}s'
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min ' \
+               f'{second_value[0]}-{second_value[1]}s'
     else:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min {second_value[0]}s {micros_value}ms'
+        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min ' \
+               f'{second_value[0]}s {micros_value}ms'
+
+
+"""
+Below we have simple callbacks for disabling time sliders when slider above is a range (as opposed to a single value)
+"""
 
 
 @app.callback(

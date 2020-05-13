@@ -7,9 +7,10 @@ import dash_table
 from utils import generate_slider
 
 
-def generate_app_layout(msuks, features, files):
+def generate_app_layout(features, files):
     app_layout = html.Div([
         html.Div([
+            html.Div(id='signal_data_ready', style={'display': 'none'}),
             html.Div(id='filtered_df', style={'display': 'none'}),
             html.Div(
                 html.H3('Book Reader'),
@@ -18,8 +19,8 @@ def generate_app_layout(msuks, features, files):
             html.Hr(),
             dcc.Dropdown(
                 id='msuk_selector',
-                options=[{'label': msuk, 'value': msuk} for msuk in msuks],
-                value=msuks[0],
+                options=[],
+                value=None,
             ),
             html.Hr(),
             dcc.Dropdown(
