@@ -73,6 +73,7 @@ def generate_datatable(id):
         )
     return table
 
+
 def generate_colors(scale):
     colors = ['#f0f921', '#fdca26', '#fb9f3a', '#ed7953', '#d8576b', '#9c179e', '#7201a8', '#46039f', '#0d0887']
     colorscale = [[0, colors[0]]]

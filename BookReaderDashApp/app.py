@@ -1,24 +1,30 @@
+import logging
 import re
+from functools import lru_cache
 from datetime import datetime as dt
 
-from flask_caching import Cache
 import pandas as pd
 import dash
+import click
+from flask_caching import Cache
 from dash.dependencies import Input, Output
-from utils.data_workflow import load_data as load_data_workflow
-from app_layout import generate_app_layout
+
 from utils import FigureGenerator
 from utils import FEATURES, TIME_RANGES, COLUMNS_FOR_DATA_TABLE
+from utils.data_workflow import load_data as load_data_workflow
 from settings import DATA_FILES
-import click
+from app_layout import generate_app_layout
+
 
 
 app = dash.Dash(__name__)
+
+
 cache = Cache(app.server, config={
     'CACHE_TYPE': 'filesystem',
     'CACHE_DIR': 'cache-directory'
 })
-SEPARATOR = "====================="
+
 
 """
 The three next functions handle loading the data from disk, but only when a different file is selected.
@@ -26,26 +32,27 @@ Data is cached and rapidly accessible to other callbacks
 """
 
 
-@cache.memoize()
+@lru_cache(maxsize=None)
 def global_store(file_path, use_cache):
-    click.echo(SEPARATOR)
-    click.echo(f'Loading data from {file_path}')
     df = load_data_workflow(file_path, use_cache=use_cache)
     msuks = df['msuk'].unique()
     options = [{'label': msuk, 'value': msuk} for msuk in msuks]
-    click.echo('Data loaded')
     return df, options
 
 
 @app.callback([Output('signal_data_ready', 'children'), Output('msuk_selector', 'options')],
               [Input('file', 'value'), Input('use_cache', 'children')])
 def load_data_from_file_selector(file_path, use_cache):
-    msuks_options = global_store(file_path, use_cache)[1]
+    # unpack one-element list
+    [use_cache] = use_cache
+    _, msuks_options =  global_store(file_path, use_cache)
     return file_path, msuks_options
 
 
 def get_data_from_cache(file_path, use_cache):
-    data = global_store(file_path, use_cache)[0]
+    # unpack one-element list
+    [use_cache] = use_cache
+    data, _ = global_store(file_path, use_cache)
     return data
 
 
@@ -63,9 +70,7 @@ Next callback filters the dataframe for selected timeframe, generates appropriat
                Input('feature_selector', 'value'), Input('use_cache', 'children')])
 @cache.memoize(timeout=20)
 def update_figure(file_path, hour_value, minute_value, second_value, micros_value, date, msuk, feature, use_cache):
-
-    click.echo('Filtering Data to selected timeframe')
-
+    app.logger.info(f"Loading data from {file_path} for figure updates.")
     filtered_df = get_data_from_cache(file_path, use_cache)
     if msuk is not None:
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
@@ -81,16 +86,13 @@ def update_figure(file_path, hour_value, minute_value, second_value, micros_valu
     df_to_display = filtered_df[COLUMNS_FOR_DATA_TABLE].to_dict('records')
     bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
-    click.echo('Generating Figures')
-
     figure = FigureGenerator.figure(bid_ask_df, feature)
     bid_ask_fig = FigureGenerator.bid_ask_figure(bid_ask_df)
     depth_fig = FigureGenerator.depth_cum_figure(filtered_df)
     size_imbalance_fig = FigureGenerator.size_imbalance_figure(bid_ask_df)
     filtered_df_json = filtered_df.to_json(date_format='iso', orient='split')
 
-    click.echo('Ready')
-    click.echo(SEPARATOR)
+    app.logger.info("Data loaded for figure updates.")
     return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, filtered_df_json
 
 
@@ -124,7 +126,7 @@ Generates trade_volume_details figure on clicking the depth figures
     Output('depth_detail', 'figure'),
     [Input('depth_2', 'clickData'), Input('depth', 'clickData'),
      Input('signal_data_ready', 'children'), Input('use_cache', 'children')])
-def display_click_data(click_data_2, click_data, file_path, use_cache):
+def display_click_data(click_data_2, click_data_1, file_path, use_cache):
     ctx = dash.callback_context
     filtered_df = get_data_from_cache(file_path, use_cache)
     fig = FigureGenerator.trade_volume_detail(ctx, filtered_df)
@@ -194,19 +196,24 @@ def set_micros_values(button, value):
     return ([0, 1000000], is_second_range) if (button or is_second_range) else ([597045, 650000], is_second_range)
 
 
-
 @click.command()
-@click.option('--use-cache', '-c', is_flag=True,
-              help='Defines if using cache for data loading. Recommended for large datasets.')
-def main(use_cache):
+@click.option("--use-cache/--no-cache", "-c", is_flag=True, default=True,
+              help="Use cache for data loading. Recommended for large datasets.")
+@click.option("--debug/--no-debug", "-d", is_flag=True, default=True,
+              help="Run dash app in debug mode.")
+def main(use_cache, debug):
     """
     Runs a server for displaying book data on a webpage.
     """
-    use_cache = use_cache or False
-    print('Using Cache: ', use_cache)
+
     app.layout = generate_app_layout(FEATURES, DATA_FILES, use_cache)
-    app.run_server(debug=True)
+    if debug:
+        app.logger.setLevel(logging.INFO)
+
+    app.logger.info(f"Data caching: {'on' if use_cache else 'off'}")
+    app.run_server(debug=debug)
 
 
 if __name__ == '__main__':
     main()
+

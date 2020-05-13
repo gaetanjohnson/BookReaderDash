@@ -5,6 +5,7 @@ import dash_html_components as html
 
 from utils import generate_slider, generate_datatable
 
+
 def generate_app_layout(features, files, use_cache):
     app_layout = html.Div([
         html.Div([

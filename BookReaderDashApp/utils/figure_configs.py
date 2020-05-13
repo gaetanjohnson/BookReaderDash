@@ -72,7 +72,7 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def depth_cum_figure(cls, df):
-        data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
+        data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime'], append=True).unstack()
         x = df['datetime'].drop_duplicates()
         y = data.index
         z = data.values
