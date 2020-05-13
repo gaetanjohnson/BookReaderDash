@@ -6,7 +6,20 @@ from models import BookReader, TopBookReader
 
 def load_data(file, use_cache=False):
     """
-    Explicitly ask for cache, and invalidate cache otherwise (if generator code changes)
+    Load data file from supported formats.
+
+    Parameters
+    ----------
+    path : pathlib.Path or str
+        path or path-like object pointing to the data file.
+
+    use_cache : bool
+        if true, try to recover data from local cache.
+        if false or the cache doesn't exist, invalidate the cache.
+
+    Returns
+    -------
+    pandas.DataFrame
     """
     filename, file_extension = os.path.splitext(file)
 

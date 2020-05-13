@@ -6,11 +6,11 @@ from .base import DataReader
 
 
 class BookReader(DataReader):
-    # fixme timezone info is intentionally left off to avoid pandas warnings
-    # fixme the data format includes two dates: 'our', 'source', which one to choose?
-    # todo write some unittests
-    # todo generate random data in this format
-    # compile regex ahead of time
+    """
+    DataReader for book line data.
+    """
+
+    # We compile the regexes ahead of time for performance.
     _compiled_regexes = {
         "msuk": re.compile(r"\w+\((\d+)\)"),
         "datetime": re.compile(r"our=(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?) (?:\w+) flags="),
@@ -24,12 +24,31 @@ class BookReader(DataReader):
 
     @classmethod
     def load(cls, path):
+        """
+        Load data.
+
+        Parameters
+        ----------
+        path : pathlib.Path or str
+            path or path-like object pointing to the data file.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A dataframe of entries containing the required columns.
+
+        Raises
+        ------
+        RuntimeError
+            In case a parse operation is unsuccessful.
+        """
         with open(path, mode="r") as f:
             lines = f.readlines()
 
-        # generator expression, use once and throw away
+        # generator expression, (lazily) use once and throw away
         data = (cls._parse_entry(line, number) for number, line in enumerate(lines, 1))
 
+        # let pandas do the type conversions
         df = pd.DataFrame(data).astype({
             "msuk": "int64",
             "datetime": "datetime64[ns]",
@@ -46,6 +65,8 @@ class BookReader(DataReader):
             "direction": "string",
             "spread": 'float64'
         })
+
+        # compute remaining required columns
         df["nanosEpoch"] = df["datetime"].values.astype("int64")
         df['date'] = df['datetime'].dt.date
         df['hour'] = df['datetime'].dt.hour
@@ -56,10 +77,32 @@ class BookReader(DataReader):
         df['cumulative_trade_volume'] = df.groupby(['nanosEpoch', 'direction'])['tradeSz'].cumsum()
         # TODO: comoute size imbalances for different levels
         df['size_imbalance'] = df['askSz'] - df['bidSz']
+
         return df
 
     @classmethod
     def _parse_entry(cls, line, line_number):
+        """
+        Parse one data entry.
+
+        Parameters
+        ----------
+        line : str
+            data entry.
+
+        line_number : int
+            line number of the data entry.
+
+        Returns
+        -------
+        dict
+            from str to str, representing the attributes of the data entry.
+
+        Raises
+        ------
+        RuntimeError
+            In case a parse operation is unsuccessful.
+        """
         data_dict = {}
 
         # parsing msuk
@@ -87,6 +130,29 @@ class BookReader(DataReader):
 
     @classmethod
     def _unsafe_search(cls, line, line_number, attr):
+        """
+        Use regex to get a regex match object for an attribute, raises an exception on fail.
+
+        Parameters
+        ----------
+        line : str
+            data entry.
+
+        line_number : int
+            line number of the data entry.
+
+        attr : str
+            the attribute to parse.
+
+        Returns
+        -------
+        regex match group
+
+        Raises
+        ------
+        RuntimeError
+            In case the regex doesn't match.
+        """
         match_result = cls._compiled_regexes[attr].search(line)
         if match_result is None:
             raise RuntimeError(f"Failed parsing attribute `{attr}` on line number `{line_number}`.")
