@@ -18,7 +18,7 @@ cache = Cache(app.server, config={
     'CACHE_TYPE': 'filesystem',
     'CACHE_DIR': 'cache-directory'
 })
-
+SEPARATOR = "====================="
 
 """
 The three next functions handle loading the data from disk, but only when a different file is selected.
@@ -28,11 +28,12 @@ Data is cached and rapidly accessible to other callbacks
 
 @cache.memoize()
 def global_store(file_path, use_cache):
-    print(f'Loading data from {file_path}')
+    click.echo(SEPARATOR)
+    click.echo(f'Loading data from {file_path}')
     df = load_data_workflow(file_path, use_cache=use_cache)
     msuks = df['msuk'].unique()
     options = [{'label': msuk, 'value': msuk} for msuk in msuks]
-    print('Data Loaded')
+    click.echo('Data loaded')
     return df, options
 
 
@@ -63,6 +64,8 @@ Next callback filters the dataframe for selected timeframe, generates appropriat
 @cache.memoize(timeout=20)
 def update_figure(file_path, hour_value, minute_value, second_value, micros_value, date, msuk, feature, use_cache):
 
+    click.echo('Filtering Data to selected timeframe')
+
     filtered_df = get_data_from_cache(file_path, use_cache)
     if msuk is not None:
         filtered_df = filtered_df[(filtered_df.msuk == msuk)]
@@ -78,12 +81,16 @@ def update_figure(file_path, hour_value, minute_value, second_value, micros_valu
     df_to_display = filtered_df[COLUMNS_FOR_DATA_TABLE].to_dict('records')
     bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
+    click.echo('Generating Figures')
+
     figure = FigureGenerator.figure(bid_ask_df, feature)
     bid_ask_fig = FigureGenerator.bid_ask_figure(bid_ask_df)
     depth_fig = FigureGenerator.depth_cum_figure(filtered_df)
     size_imbalance_fig = FigureGenerator.size_imbalance_figure(bid_ask_df)
     filtered_df_json = filtered_df.to_json(date_format='iso', orient='split')
 
+    click.echo('Ready')
+    click.echo(SEPARATOR)
     return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, filtered_df_json
 
 
@@ -189,8 +196,8 @@ def set_micros_values(button, value):
 
 
 @click.command()
-@click.option('--use-cache', '-c', type=bool,
-              help='<True/False> Defines if using cache for data loading. Recommended for large datasets.')
+@click.option('--use-cache', '-c', is_flag=True,
+              help='Defines if using cache for data loading. Recommended for large datasets.')
 def main(use_cache):
     """
     Runs a server for displaying book data on a webpage.
