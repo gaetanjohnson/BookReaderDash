@@ -104,7 +104,6 @@ def generate_depth_figure_non_cum(df, scale):
 
     return fig
 
->>>>>>> fbd982ea7aa4872ffa01cf5409fffb98db2bddef
 @app.callback(
     Output('depth_detail', 'figure'),
     [Input('depth_2', 'clickData'), Input('depth', 'clickData')])
