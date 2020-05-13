@@ -4,3 +4,4 @@ Select a file to load in app.py (current files: line/top book from btc, line/top
 
 Run app.py in terminal to launch server
 
+Run app.py --help for help
