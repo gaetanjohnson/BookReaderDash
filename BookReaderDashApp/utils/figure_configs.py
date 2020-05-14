@@ -79,6 +79,7 @@ class FigureGenerator:
             data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
         except:
             return [], dict(), dict()
+
         x = df['datetime'].drop_duplicates()
         y = data.index
         z = data.values
