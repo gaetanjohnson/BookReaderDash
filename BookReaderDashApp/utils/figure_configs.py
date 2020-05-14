@@ -42,7 +42,8 @@ class FigureGenerator:
     @figure_generator
     def figure(cls, relevant_df, feature):
         traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df[feature], mode='lines', name=feature, line_width=2)
-        return [traces], dict(), dict()
+        layout = dict(title_text=feature)
+        return [traces], layout, dict()
 
     # TODO: generate lines for different levels (not just best)
     @classmethod

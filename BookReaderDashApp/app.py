@@ -1,7 +1,6 @@
 import logging
 import dash
 import click
-from flask_caching import Cache
 from dash.dependencies import Input, Output
 
 from utils import FigureGenerator
@@ -11,17 +10,7 @@ from settings import DATA_FILES
 from app_layout import generate_app_layout
 
 
-
 app = dash.Dash(__name__)
-
-
-cache = Cache(app.server, config={
-    'CACHE_TYPE': 'filesystem',
-    'CACHE_DIR': 'cache-directory'
-})
-
-
-
 
 
 @app.callback([Output('signal_data_ready', 'children'), Output('msuk_selector', 'options')],
@@ -78,9 +67,9 @@ def update_figure(feature, *args):
                Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
                Input('hour_slider', 'value'), Input('minute_slider', 'value'),
                Input('second_slider', 'value'), Input('micros_slider', 'value')])
-def generate_depth_figure_non_cum(scale, *args):
+def generate_trade_volume_figure(scale, *args):
     """
-    Generates the depth figure from filtered data.
+    Generates the trade volume figure from filtered data.
     Separate from main figure updater for quick load on color scale change
     """
     df = get_filtered_data(*args)
@@ -95,7 +84,7 @@ def generate_depth_figure_non_cum(scale, *args):
      Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
      Input('hour_slider', 'value'), Input('minute_slider', 'value'),
      Input('second_slider', 'value'), Input('micros_slider', 'value')])
-def display_click_data(click_data_2, click_data_1, *args):
+def generate_trade_volume_details_figure(click_data_2, click_data_1, *args):
     """
     Generates trade_volume_details figure on clicking the depth figures.
     Separate from main figure updater because of click & hover data inputs
@@ -111,7 +100,6 @@ def display_click_data(click_data_2, click_data_1, *args):
     [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
      Input('second_slider', 'value'), Input('micros_slider', 'value'),
      Input('date_picker', 'date')])
-@cache.memoize(timeout=20)
 def generate_output_timeframe(hour_value, minute_value, second_value, micros_value, date):
     """
     Callback to display selected timeframe

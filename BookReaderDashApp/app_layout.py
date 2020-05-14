@@ -22,12 +22,14 @@ def generate_app_layout(features, files, use_cache):
                 id='msuk_selector',
                 options=[],
                 value=None,
+                placeholder='Select msuk'
             ),
             html.Hr(),
             dcc.Dropdown(
                 id='file',
                 options=[{'label': file, 'value': file} for file in files],
                 value=files[0],
+                clearable=False,
             ),
             html.Hr(),
             html.Div([
@@ -67,6 +69,7 @@ def generate_app_layout(features, files, use_cache):
                                 id='feature_selector',
                                 options=features,
                                 value=features[0]["value"],
+                                clearable=False
                             ),
                             dcc.Graph(id='time_series'),
                             dcc.Graph(id='bid_ask'),
