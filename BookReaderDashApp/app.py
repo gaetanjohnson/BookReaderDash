@@ -1,9 +1,4 @@
 import logging
-import re
-from functools import lru_cache
-from datetime import datetime as dt
-
-import pandas as pd
 import dash
 import click
 from flask_caching import Cache
@@ -66,10 +61,9 @@ def update_figure(feature, *args):
     Updates figure from filtered data
     """
     filtered_df = get_filtered_data(*args)
-
-    df_to_display = filtered_df[COLUMNS_FOR_DATA_TABLE].to_dict('records')
     bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
+    df_to_display = filtered_df[COLUMNS_FOR_DATA_TABLE].to_dict('records')
     figure = FigureGenerator.figure(bid_ask_df, feature)
     bid_ask_fig = FigureGenerator.bid_ask_figure(bid_ask_df)
     depth_fig = FigureGenerator.depth_cum_figure(filtered_df)
