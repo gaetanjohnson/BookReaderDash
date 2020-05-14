@@ -10,8 +10,8 @@ from flask_caching import Cache
 from dash.dependencies import Input, Output
 
 from utils import FigureGenerator
-from utils import FEATURES, TIME_RANGES, COLUMNS_FOR_DATA_TABLE
-from utils.data_workflow import load_data as load_data_workflow
+from utils import FEATURES, TIME_RANGES, COLUMNS_FOR_DATA_TABLE, APP_INPUTS
+from utils.data_workflow import get_filtered_data, get_global_data
 from settings import DATA_FILES
 from app_layout import generate_app_layout
 
@@ -26,63 +26,47 @@ cache = Cache(app.server, config={
 })
 
 
-"""
-The three next functions handle loading the data from disk, but only when a different file is selected.
-Data is cached and rapidly accessible to other callbacks 
-"""
 
-
-@lru_cache(maxsize=None)
-def global_store(file_path, use_cache):
-    df = load_data_workflow(file_path, use_cache=use_cache)
-    msuks = df['msuk'].unique()
-    options = [{'label': msuk, 'value': msuk} for msuk in msuks]
-    return df, options
 
 
 @app.callback([Output('signal_data_ready', 'children'), Output('msuk_selector', 'options')],
               [Input('file', 'value'), Input('use_cache', 'children')])
 def load_data_from_file_selector(file_path, use_cache):
-    # unpack one-element list
-    [use_cache] = use_cache
-    _, msuks_options =  global_store(file_path, use_cache)
+    """
+    Handles loading the data from disk, but only when a different file is selected.
+    Data is cached for quick use by filtering function.
+    """
+    _, msuks_options =  get_global_data(file_path, use_cache)
     return file_path, msuks_options
 
 
-def get_data_from_cache(file_path, use_cache):
-    # unpack one-element list
-    [use_cache] = use_cache
-    data, _ = global_store(file_path, use_cache)
-    return data
+@app.callback(Output('signal_data_filtered', 'children'),
+              [Input('signal_data_ready', 'children'), Input('date_picker', 'date'),
+               Input('msuk_selector', 'value'), Input('use_cache', 'children'),
+               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+               Input('second_slider', 'value'), Input('micros_slider', 'value'),])
+def filter_dataframe(file_path, *args):
+    """
+    Handles filtering data from loaded data. Data is cached and rapidly accessible to other callbacks
+    """
+    _ = get_filtered_data(file_path, *args)
+    return file_path
 
-
-"""
-Next callback filters the dataframe for selected timeframe, generates appropriate figures and stores filtered_dataframe
-"""
 
 
 @app.callback([Output('table', 'data'), Output('time_series', 'figure'),
                Output('bid_ask', 'figure'), Output('depth', 'figure'),
-               Output('size_imbalance', 'figure'), Output('filtered_df', 'children')],
-              [Input('signal_data_ready', 'children'), Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-               Input('second_slider', 'value'), Input('micros_slider', 'value'),
-               Input('date_picker', 'date'), Input('msuk_selector', 'value'),
-               Input('feature_selector', 'value'), Input('use_cache', 'children')])
-@cache.memoize(timeout=20)
-def update_figure(file_path, hour_value, minute_value, second_value, micros_value, date, msuk, feature, use_cache):
-    app.logger.info(f"Loading data from {file_path} for figure updates.")
-    filtered_df = get_data_from_cache(file_path, use_cache)
-    if msuk is not None:
-        filtered_df = filtered_df[(filtered_df.msuk == msuk)]
-    if date is not None:
-        date = dt.strptime(re.split(r"[T ]", date)[0], '%Y-%m-%d')
-        date = dt.date(date)
-        filtered_df = filtered_df[(filtered_df.date == date)]
+               Output('size_imbalance', 'figure')],
+              [Input('feature_selector', 'value'), Input('signal_data_filtered', 'children'),
+               Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
+               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+               Input('second_slider', 'value'), Input('micros_slider', 'value')])
+def update_figure(feature, *args):
+    """
+    Updates figure from filtered data
+    """
+    filtered_df = get_filtered_data(*args)
 
-    filtered_df = filter_dataframe(filtered_df, 'hour', hour_value)
-    filtered_df = filter_dataframe(filtered_df, 'minute', minute_value)
-    filtered_df = filter_dataframe(filtered_df, 'second', second_value)
-    filtered_df = filter_dataframe(filtered_df, 'microsecond', micros_value)
     df_to_display = filtered_df[COLUMNS_FOR_DATA_TABLE].to_dict('records')
     bid_ask_df = filtered_df.drop_duplicates(subset='datetime')
 
@@ -90,52 +74,42 @@ def update_figure(file_path, hour_value, minute_value, second_value, micros_valu
     bid_ask_fig = FigureGenerator.bid_ask_figure(bid_ask_df)
     depth_fig = FigureGenerator.depth_cum_figure(filtered_df)
     size_imbalance_fig = FigureGenerator.size_imbalance_figure(bid_ask_df)
-    filtered_df_json = filtered_df.to_json(date_format='iso', orient='split')
 
     app.logger.info("Data loaded for figure updates.")
-    return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig, filtered_df_json
-
-
-def filter_dataframe(df, attr, timerange):
-    if timerange is not None and timerange != TIME_RANGES[attr]:
-        min_value, max_value = timerange
-        return df[(df[attr] <= max_value) & (df[attr] >= min_value)]
-    else:
-        return df
-
-
-"""
-Generates the depth figure from filtered df json. It is separate from the above for quick load on color scale change
-"""
+    return df_to_display, figure, bid_ask_fig, depth_fig, size_imbalance_fig
 
 
 @app.callback(Output('depth_2', 'figure'),
-              [Input('filtered_df', 'children'), Input('color_scale', 'value')])
-def generate_depth_figure_non_cum(df, scale):
-    df = pd.read_json(df, orient='split')
+              [Input('color_scale', 'value'), Input('signal_data_filtered', 'children'),
+               Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
+               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+               Input('second_slider', 'value'), Input('micros_slider', 'value')])
+def generate_depth_figure_non_cum(scale, *args):
+    """
+    Generates the depth figure from filtered data.
+    Separate from main figure updater for quick load on color scale change
+    """
+    df = get_filtered_data(*args)
     fig = FigureGenerator.depth_non_cum_figure(df, scale)
     return fig
 
 
-"""
-Generates trade_volume_details figure on clicking the depth figures
-"""
-
-
 @app.callback(
     Output('depth_detail', 'figure'),
-    [Input('depth_2', 'clickData'), Input('depth', 'clickData'),
-     Input('signal_data_ready', 'children'), Input('use_cache', 'children')])
-def display_click_data(click_data_2, click_data_1, file_path, use_cache):
+    [Input('depth_2', 'hoverData'), Input('depth', 'clickData'),
+     Input('signal_data_filtered', 'children'),
+     Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
+     Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+     Input('second_slider', 'value'), Input('micros_slider', 'value')])
+def display_click_data(click_data_2, click_data_1, *args):
+    """
+    Generates trade_volume_details figure on clicking the depth figures.
+    Separate from main figure updater because of click & hover data inputs
+    """
     ctx = dash.callback_context
-    filtered_df = get_data_from_cache(file_path, use_cache)
-    fig = FigureGenerator.trade_volume_detail(ctx, filtered_df)
+    df = get_filtered_data(*args)
+    fig = FigureGenerator.trade_volume_detail(ctx, df)
     return fig
-
-
-"""
-Callback to display selected timeframe
-"""
 
 
 @app.callback(
@@ -145,6 +119,9 @@ Callback to display selected timeframe
      Input('date_picker', 'date')])
 @cache.memoize(timeout=20)
 def generate_output_timeframe(hour_value, minute_value, second_value, micros_value, date):
+    """
+    Callback to display selected timeframe
+    """
     is_hour_range = hour_value[0] < hour_value[1]
     is_minute_range = minute_value[0] < minute_value[1]
     is_second_range = second_value[0] < second_value[1]
@@ -210,7 +187,7 @@ def main(use_cache, debug):
     if debug:
         app.logger.setLevel(logging.INFO)
 
-    app.logger.info(f"Data caching: {'on' if use_cache else 'off'}")
+    app.logger.info(f" * Data caching: {'on' if use_cache else 'off'}")
     app.run_server(debug=debug)
 
 

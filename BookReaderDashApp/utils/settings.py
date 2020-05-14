@@ -7,10 +7,12 @@ FEATURES = [
 ]
 
 TIME_RANGES = {
-    'hour': [0, 24],
-    'minute': [0, 60],
-    'second': [0, 60],
-    'microsecond': [0, 1000000]
+    'hour': {'min': 0, 'max': 24},
+    'minute': {'min': 0, 'max': 60},
+    'second': {'min': 0, 'max': 60},
+    'microsecond': {'min': 0, 'max': 1000000}
 }
 
 COLUMNS_FOR_DATA_TABLE = ['time', 'date', 'bidSz', 'bidPx', 'askPx', 'askSz', 'tradePx', 'tradeSz', 'direction']
+
+APP_INPUTS = ['file_path', 'date', 'msuk', 'use_cache', 'hour', 'minute', 'second', 'micros']

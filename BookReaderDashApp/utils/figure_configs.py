@@ -41,7 +41,7 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def figure(cls, relevant_df, feature):
-        traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df[feature], mode='lines', name=feature)
+        traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df[feature], mode='lines', name=feature, line_width=2)
         return [traces], dict(), dict()
 
     # TODO: generate lines for different levels (not just best)
@@ -49,7 +49,7 @@ class FigureGenerator:
     @figure_generator
     def size_imbalance_figure(cls, relevant_df):
         traces = go.Scatter(x=relevant_df['datetime'], y=relevant_df['size_imbalance'], mode='lines',
-                            name='size_imbalance')
+                            name='size_imbalance', line_width=2)
         layout = dict(title_text="Size Imbalance on best Bid/Ask", )
         return [traces], layout, dict()
 
@@ -58,11 +58,13 @@ class FigureGenerator:
     def bid_ask_figure(cls, relevant_df):
         dt = relevant_df["datetime"]
         traces = [
-            go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='green'),
+            go.Scatter(x=dt, y=relevant_df["bidPx"], name='Bid', mode='lines', line_color='green', line_width=2),
             go.Scatter(x=dt, y=relevant_df["askPx"], name='Ask', fill='tonexty', mode='lines', line_color='red',
-                       yaxis='y'),
-            go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='green', yaxis='y2'),
-            go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='red', yaxis='y2'),
+                       line_width=2, yaxis='y'),
+            go.Scatter(x=dt, y=relevant_df["bidSz"], name='Bid Volume', mode='lines', line_color='green', yaxis='y2',
+                       line_width=2),
+            go.Scatter(x=dt, y=relevant_df["askSz"], name='Ask Volume', mode='lines', line_color='red', yaxis='y2',
+                       line_width=2),
         ]
 
         layout = dict(title_text="Bid Ask and Volumes", legend_orientation="h", hovermode='x unified',
@@ -72,7 +74,10 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def depth_cum_figure(cls, df):
-        data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime'], append=True).unstack()
+        try:
+            data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
+        except:
+            return [], dict(), dict()
         x = df['datetime'].drop_duplicates()
         y = data.index
         z = data.values
@@ -81,8 +86,10 @@ class FigureGenerator:
 
         traces = [
             go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure']),
-            go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']),
-            go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line'])
+            go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line'],
+                       line_width=2),
+            go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line'],
+                       line_width=2)
         ]
 
         layout = dict(title_text="Cumulative volumes per price")
@@ -107,8 +114,10 @@ class FigureGenerator:
 
         traces = [
             go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale=colorscale),
-            go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line']),
-            go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line'])
+            go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line'],
+                       line_width=2),
+            go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line'],
+                       line_width=2)
         ]
 
         layout = dict(title_text="Volumes per price")
@@ -141,12 +150,11 @@ class FigureGenerator:
             return traces, layout, dict()
 
 def handle_ctx(ctx):
-    if ctx == None:
+    """
+    Tries to get a datetime in click or hover Data. If not found, return None
+    """
+    try:
+        datetime = ctx[0]['value']['points'][0].get('x', None)
+        return datetime
+    except:
         return None
-    else:
-        triggered_value = ctx[0]['value']
-        if type(triggered_value) == str:
-            return None
-        else:
-            datetime = triggered_value['points'][0].get('x', None)
-            return datetime
