@@ -86,8 +86,8 @@ class FigureGenerator:
         data_bid = data_bid[~data_bid.index.duplicated(keep='first')]
 
         traces = [
-            go.Heatmap(z=data_ask.values, x=x, y=data_ask.index, hovertemplate=HOVER_TEMPLATES['depth_figure']),
-            go.Heatmap(z=data_bid.values, x=x, y=data_bid.index, hovertemplate=HOVER_TEMPLATES['depth_figure']),
+            go.Heatmap(z=data_ask.values, x=x, y=data_ask.index, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale='reds'),
+            go.Heatmap(z=data_bid.values, x=x, y=data_bid.index, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale='greens'),
         ]
 
         layout = dict(title_text="Cumulative volumes per Trade price (in percent of best Bid/Ask)")
