@@ -11,7 +11,9 @@ from app_layout import generate_app_layout
 
 
 app = dash.Dash(__name__)
-
+DATA_FILTERING_INPUTS = [Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
+               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
+               Input('second_slider', 'value'), Input('micros_slider', 'value')]
 
 @app.callback([Output('signal_data_ready', 'children'), Output('msuk_selector', 'options')],
               [Input('file', 'value'), Input('use_cache', 'children')])
@@ -25,10 +27,7 @@ def load_data_from_file_selector(file_path, use_cache):
 
 
 @app.callback(Output('signal_data_filtered', 'children'),
-              [Input('signal_data_ready', 'children'), Input('date_picker', 'date'),
-               Input('msuk_selector', 'value'), Input('use_cache', 'children'),
-               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-               Input('second_slider', 'value'), Input('micros_slider', 'value'),])
+              [Input('signal_data_ready', 'children')] + DATA_FILTERING_INPUTS)
 def filter_dataframe(file_path, *args):
     """
     Handles filtering data from loaded data. Data is cached and rapidly accessible to other callbacks
@@ -37,14 +36,9 @@ def filter_dataframe(file_path, *args):
     return file_path
 
 
-
-@app.callback([Output('table', 'data'), Output('time_series', 'figure'),
-               Output('bid_ask', 'figure'), Output('depth', 'figure'),
-               Output('size_imbalance', 'figure')],
-              [Input('feature_selector', 'value'), Input('signal_data_filtered', 'children'),
-               Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
-               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-               Input('second_slider', 'value'), Input('micros_slider', 'value')])
+@app.callback([Output('table', 'data'), Output('time_series', 'figure'), Output('bid_ask', 'figure'),
+               Output('depth', 'figure'), Output('size_imbalance', 'figure')],
+              [Input('feature_selector', 'value'), Input('signal_data_filtered', 'children'),] + DATA_FILTERING_INPUTS)
 def update_figure(feature, *args):
     """
     Updates figure from filtered data
@@ -63,10 +57,7 @@ def update_figure(feature, *args):
 
 
 @app.callback(Output('depth_2', 'figure'),
-              [Input('color_scale', 'value'), Input('signal_data_filtered', 'children'),
-               Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
-               Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-               Input('second_slider', 'value'), Input('micros_slider', 'value')])
+              [Input('color_scale', 'value'), Input('signal_data_filtered', 'children')] + DATA_FILTERING_INPUTS)
 def generate_trade_volume_figure(scale, *args):
     """
     Generates the trade volume figure from filtered data.
@@ -79,11 +70,8 @@ def generate_trade_volume_figure(scale, *args):
 
 @app.callback(
     Output('depth_detail', 'figure'),
-    [Input('depth_2', 'hoverData'), Input('depth', 'clickData'),
-     Input('signal_data_filtered', 'children'),
-     Input('date_picker', 'date'), Input('msuk_selector', 'value'), Input('use_cache', 'children'),
-     Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-     Input('second_slider', 'value'), Input('micros_slider', 'value')])
+    [Input('depth_2', 'hoverData'), Input('depth', 'clickData'), Input('signal_data_filtered', 'children')]
+    + DATA_FILTERING_INPUTS)
 def generate_trade_volume_details_figure(click_data_2, click_data_1, *args):
     """
     Generates trade_volume_details figure on clicking the depth figures.
@@ -93,30 +81,6 @@ def generate_trade_volume_details_figure(click_data_2, click_data_1, *args):
     df = get_filtered_data(*args)
     fig = FigureGenerator.trade_volume_detail(ctx, df)
     return fig
-
-
-@app.callback(
-    Output('output_timeframe', 'children'),
-    [Input('hour_slider', 'value'), Input('minute_slider', 'value'),
-     Input('second_slider', 'value'), Input('micros_slider', 'value'),
-     Input('date_picker', 'date')])
-def generate_output_timeframe(hour_value, minute_value, second_value, micros_value, date):
-    """
-    Callback to display selected timeframe
-    """
-    is_hour_range = hour_value[0] < hour_value[1]
-    is_minute_range = minute_value[0] < minute_value[1]
-    is_second_range = second_value[0] < second_value[1]
-    if is_hour_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}-{hour_value[1]} h'
-    elif is_minute_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}-{minute_value[1]}min'
-    elif is_second_range:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min ' \
-               f'{second_value[0]}-{second_value[1]}s'
-    else:
-        return f'Selected Timeframe: {date.split()[0]} {hour_value[0]}h {minute_value[0]}min ' \
-               f'{second_value[0]}s {micros_value}ms'
 
 
 """
