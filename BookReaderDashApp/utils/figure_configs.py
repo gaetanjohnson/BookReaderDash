@@ -75,26 +75,22 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def depth_cum_figure(cls, df):
-        try:
-            data = df[['datetime', 'cumulative_trade_volume', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
-        except:
-            return [], dict(), dict()
-
         x = df['datetime'].drop_duplicates()
-        y = data.index
-        z = data.values
-        best_df = df.drop_duplicates('datetime')
-        bid, ask = best_df['bidPx'], best_df['askPx']
+        df['tradePctBid'] = df['tradePx'].div(df['bidPx']).round(5)
+        df['tradePctAsk'] = df['tradePx'].div(df['askPx']).round(5)
+        data_bid = df[df['direction'] == 'Buy'].pivot(index='tradePctBid', columns='datetime', values='cumulative_trade_volume')\
+                                               .fillna(method='bfill')
+        data_ask = df[df['direction'] == 'Sell'].pivot(index='tradePctAsk', columns='datetime', values='cumulative_trade_volume')\
+                                                .fillna(method='ffill')
+        data_ask = data_ask[~data_ask.index.duplicated(keep='first')]
+        data_bid = data_bid[~data_bid.index.duplicated(keep='first')]
 
         traces = [
-            go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure']),
-            go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line'],
-                       line_width=2),
-            go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line'],
-                       line_width=2)
+            go.Heatmap(z=data_ask.values, x=x, y=data_ask.index, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale='reds'),
+            go.Heatmap(z=data_bid.values, x=x, y=data_bid.index, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale='greens'),
         ]
 
-        layout = dict(title_text="Cumulative volumes per price")
+        layout = dict(title_text="Cumulative volumes per Trade price (in percent of best Bid/Ask)")
         x_axes = dict(showspikes=True, spikemode="across")
 
         return traces, layout, x_axes
@@ -102,20 +98,14 @@ class FigureGenerator:
     @classmethod
     @figure_generator
     def depth_non_cum_figure(cls, df, scale):
-        try:
-            data = df[['datetime', 'tradeSz', 'tradePx']].set_index(['tradePx', 'datetime']).unstack()
-        # TODO: show different layout when data is just top of the book. For now, just return empty Figures
-        except:
-            return [], dict(), dict()
+        data = df.pivot(index='tradePx', columns='datetime', values='tradeSz')
         x = df['datetime'].drop_duplicates()
-        y = data.index
-        z = data.values
         colorscale = generate_colors(scale)
         best_df = df.drop_duplicates('datetime')
         bid, ask = best_df['bidPx'], best_df['askPx']
 
         traces = [
-            go.Heatmap(z=z, x=x, y=y, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale=colorscale),
+            go.Heatmap(z=data.values, x=x, y=data.index, hovertemplate=HOVER_TEMPLATES['depth_figure'], colorscale=colorscale),
             go.Scatter(x=x, y=bid, name='Bid', mode='lines', line_color='green', hovertemplate=HOVER_TEMPLATES['line'],
                        line_width=2),
             go.Scatter(x=x, y=ask, name='Ask', mode='lines', line_color='red', hovertemplate=HOVER_TEMPLATES['line'],

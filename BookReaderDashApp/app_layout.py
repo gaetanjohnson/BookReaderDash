@@ -55,7 +55,6 @@ def generate_app_layout(features, files, use_cache):
                     generate_slider('all_micros', 'micros_slider', 0, 1000000, 10, [597045, 650000], 100000, 'ms')
                     ],
             ),
-            html.Div(id='output_timeframe'),
             ],
             style={'justify-content': 'space-between', 'margin-top': 0},
             className='four columns sidebar'
