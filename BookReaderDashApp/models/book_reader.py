@@ -62,7 +62,7 @@ class BookReader(DataReader):
             "askPx": "float64",
             "cbidPx": "float64",
             "caskPx": "float64",
-            "direction": "string",
+            "direction": "str",
             "spread": 'float64'
         })
 
